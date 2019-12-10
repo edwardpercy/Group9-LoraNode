@@ -5,6 +5,7 @@
 #include <string.h>
 #include "transmit.h"
 #include "utilities.h"
+#include "receive.h"
 
 SoftwareSerial loraSerial(10, 11);
 
@@ -67,11 +68,15 @@ void setup() {
 }
 
 void loop() {
-
+    int out;
+    
     if (Serial.available() > 0) { //Read from serial monitor and send over UART LoRa wireless module
         String input = Serial.readStringUntil('\n');
-        delay(1000);
         if (Transmit_String(input,loraSerial) == 0) Serial.println("radio tx OK");
         else Serial.println("radio tx ERROR");
-      }
+    }
+
+    if ((out = Receive_String(loraSerial)) == 0);
+    else if (out  == 2) Serial.println("radio rx DATA");
+    else Serial.println("radio rx ERROR");
 }

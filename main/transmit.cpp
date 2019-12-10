@@ -3,7 +3,6 @@
 
 int Transmit_String(String input,SoftwareSerial &loraSerial)
 {
-    
     String str;
     int str_len = input.length() + 1;
     char char_array[str_len];
@@ -19,11 +18,7 @@ int Transmit_String(String input,SoftwareSerial &loraSerial)
     sprintf(TData, "radio tx %s", RBuffer);
     Serial.println(TData);
     led_on();
-
     loraSerial.println(TData);
-    
-    
-    
     led_off();
 
     return wait_for_ok_plus_reset(loraSerial);
