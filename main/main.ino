@@ -3,10 +3,14 @@
 #include <SoftwareSerial.h>
 #include <stdio.h>
 #include <string.h>
+#include "transmit.h"
+#include "utilities.h"
 
 SoftwareSerial loraSerial(10, 11);
 
 void setup() {
+  int Startup_Check = 0;
+  String str;
   //output LED pin
   pinMode(13, OUTPUT);
   led_off();
@@ -15,62 +19,51 @@ void setup() {
 
   loraSerial.begin(9600);
   loraSerial.setTimeout(1000);
-  lora_autobaud();
+  lora_autobaud(loraSerial);
 
   led_on();
   delay(1000);
   led_off();
 
-  Serial.println("Initing LoRa");
-
   loraSerial.listen();
   str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
   loraSerial.println("sys get ver");
   str = loraSerial.readStringUntil('\n');
   Serial.println(str);
   loraSerial.println("mac pause");
   str = loraSerial.readStringUntil('\n');
   Serial.println(str);
+
+  Serial.println("NODE: Starting");
   loraSerial.println("radio set mod lora");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set freq 869100000");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set pwr 14");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set sf sf7");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set afcbw 41.7");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set rxbw 125");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set prlen 8");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set crc on");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set iqi off");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set cr 4/5");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set wdt 2000"); //disable for continuous reception (Currently: 2s)
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set sync 12");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set bw 125");
-  str = loraSerial.readStringUntil('\n');
-  Serial.println(str);
+  Startup_Check += wait_for_ok(loraSerial);
+
+  if (Startup_Check > 0) Serial.println("NODE: Startup Failure");
+  else Serial.println("NODE: Startup Success");
 }
 
 void loop() {
@@ -78,8 +71,7 @@ void loop() {
     if (Serial.available() > 0) { //Read from serial monitor and send over UART LoRa wireless module
         String input = Serial.readStringUntil('\n');
         delay(1000);
-        Transmit_String(input);
+        if (Transmit_String(input,loraSerial) == 0) Serial.println("radio tx OK");
+        else Serial.println("radio tx ERROR");
       }
-    }
-
 }

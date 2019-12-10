@@ -1,5 +1,10 @@
-void Transmit_String(String input)
+#include "transmit.h"
+#include "utilities.h"
+
+int Transmit_String(String input,SoftwareSerial &loraSerial)
 {
+    
+    String str;
     int str_len = input.length() + 1;
     char char_array[str_len];
     input.toCharArray(char_array, str_len);
@@ -16,7 +21,10 @@ void Transmit_String(String input)
     led_on();
 
     loraSerial.println(TData);
-    str = loraSerial.readStringUntil('\n');
-    str = loraSerial.readStringUntil('\n');
+    
+    
+    
     led_off();
+
+    return wait_for_ok_plus_reset(loraSerial);
 }
