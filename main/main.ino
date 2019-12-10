@@ -11,6 +11,7 @@ SoftwareSerial loraSerial(10, 11);
 int out;
 bool Synced = false;
 int SyncFreq = 1000;
+int SyncRetries = 10;
 int LastSync = 0;
 int SyncAttempt = 0;
 
@@ -78,8 +79,9 @@ void loop() {
     Serial.println(LastSync);
 
     if (LastSync <= 1) SyncAttempt = 0;
-    else if (Synced == false && SyncAttempt < 10) StartupSync();
-    else SendReceiveLoop();
+    else if (Synced == false && TimeNow > 5) StartupSync();
+    else if (Synced == true) SendReceiveLoop();
+    else delay(1000);
     
     
 }
@@ -91,7 +93,7 @@ void SendReceiveLoop() {
       else Serial.println("radio tx ERROR");
   }
 
-  if ((out = Receive_String(loraSerial)) == 0);
+  if ((out = Receive_String(Synced,loraSerial)) == 0);
   else if (out  == 2) Serial.println("radio rx DATA");
   else if (out  == 3) Serial.println("radio rx CONFIRMATION");
   else Serial.println("radio rx ERROR");
@@ -104,6 +106,11 @@ void StartupSync() {
   if ((out = Receive_String(Synced,loraSerial)) == 0);
   else if (out  == 2) Serial.println("radio rx DATA");
   else if (out  == 3) Serial.println("radio rx CONFIRMATION");
+  else if (out  == 4) {
+    Synced = true;
+    Serial.println("NODE: TIME_SYNCED");
+  }
   else Serial.println("radio rx ERROR");
   SyncAttempt += 1;
+  if (SyncAttempt > SyncRetries) Synced = true;
 }

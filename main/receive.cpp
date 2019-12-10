@@ -1,6 +1,8 @@
 #include "receive.h"
 
-int Receive_String(SoftwareSerial &loraSerial){
+bool TimeAdjusted = false;
+
+int Receive_String(bool Synced,SoftwareSerial &loraSerial){
   String str;
  
   loraSerial.println("radio rx 0"); //wait for 2 seconds to receive
@@ -17,11 +19,15 @@ int Receive_String(SoftwareSerial &loraSerial){
     {
       str.remove(0, 10);
       //Serial.println(str);
-      
-      if (str.indexOf("004000") == 0) return 3;
+
+      if (TimeAdjusted == true){
+        TimeAdjusted = false;
+        return 4;
+      }
+      else if (str.indexOf("004000") == 0) return 3;
       else{
-        Transmit_Hex("004000",loraSerial);
-        Serial.println("Received Message: "+ ProcessMessage(loraSerial,str));
+        if (str.indexOf("3C3C") != 0 && Synced == true) Transmit_Hex("004000",loraSerial);
+        Serial.println("Received Message: "+ ProcessMessage(Synced,loraSerial,str));
         return 2;
       }
     }
@@ -51,7 +57,7 @@ char h2c(char c1, char c2)
   return output;
 }
 
-String ProcessMessage(SoftwareSerial &loraSerial,String str) {
+String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
   
   
   int str_len = str.length() + 1;
@@ -69,8 +75,8 @@ String ProcessMessage(SoftwareSerial &loraSerial,String str) {
     }
   }
 
-
-  if ( str.indexOf("3C3C") == 0 ) Transmit_LastSync(loraSerial);
+  
+  if ( str.indexOf("3C3C") == 0 && Synced == true) Transmit_LastSync(loraSerial);
   if ( str.indexOf("3E3E") == 0 ) SyncTime(ReceivedChars);
 
 
@@ -88,6 +94,8 @@ void SyncTime(String ReceivedLastSync){
   time_t TimeNow = now();
   int LastSync = TimeNow%SyncFreq;
   
-  adjustTime(ReceivedLastSync.toInt()-LastSync);  
+  adjustTime(ReceivedLastSync.toInt()-LastSync); 
+  TimeAdjusted = true;
+  Serial.println("radio rx TIME_SYNCED");
 
 }

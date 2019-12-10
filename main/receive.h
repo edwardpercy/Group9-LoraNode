@@ -8,8 +8,8 @@
 #include "transmit.h"
 
 
-int Receive_String(SoftwareSerial &loraSerial);
-String ProcessMessage(SoftwareSerial &loraSerial,String str);
+int Receive_String(bool Synced,SoftwareSerial &loraSerial);
+String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str);
 char h2c(char c1, char c2);
 void SyncTime(String ReceivedLastSync);
 
