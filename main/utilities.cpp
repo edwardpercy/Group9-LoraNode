@@ -19,6 +19,7 @@ int wait_for_ok_plus_reset(SoftwareSerial &loraSerial)
 
   String str;
   str = loraSerial.readStringUntil('\n');
+  
   if ( str.indexOf("ok") == 0 ) {
     str = loraSerial.readStringUntil('\n');
     return 0;

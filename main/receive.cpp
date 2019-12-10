@@ -2,6 +2,7 @@
 
 int Receive_String(SoftwareSerial &loraSerial){
   String str;
+ 
   loraSerial.println("radio rx 0"); //wait for 2 seconds to receive
   str = loraSerial.readStringUntil('\n');
   
@@ -15,10 +16,14 @@ int Receive_String(SoftwareSerial &loraSerial){
     if ( str.indexOf("radio_rx") == 0 )
     {
       str.remove(0, 10);
-      Serial.println(str);
-      str = ProcessMessage(str);
-      if (str != "@") Transmit_String("@",loraSerial);
-      return 2;
+      //Serial.println(str);
+      
+      if (str.indexOf("004000") == 0) return 3;
+      else{
+        Transmit_Hex("004000",loraSerial);
+        Serial.println("Received Message: "+ ProcessMessage(loraSerial,str));
+        return 2;
+      }
     }
     else
     {
@@ -46,7 +51,8 @@ char h2c(char c1, char c2)
   return output;
 }
 
-String ProcessMessage(String str) {
+String ProcessMessage(SoftwareSerial &loraSerial,String str) {
+  
   
   int str_len = str.length() + 1;
   char char_array[str_len];
@@ -64,10 +70,24 @@ String ProcessMessage(String str) {
   }
 
 
-  if ( str.indexOf("73796E63") == 0 ) Serial.println("SYNC STUFF");
-  else if ( str.indexOf("73796e64") == 0 ) Serial.println("Otherstuff");
+  if ( str.indexOf("3C3C") == 0 ) Transmit_LastSync(loraSerial);
+  if ( str.indexOf("3E3E") == 0 ) SyncTime(ReceivedChars);
+
+
     
 
-  Serial.println(ReceivedChars);
+
   return ReceivedChars;
+}
+
+void SyncTime(String ReceivedLastSync){
+
+  ReceivedLastSync.remove(0, 2);
+  Serial.println(ReceivedLastSync);
+  int SyncFreq = 1000;
+  time_t TimeNow = now();
+  int LastSync = TimeNow%SyncFreq;
+  
+  adjustTime(ReceivedLastSync.toInt()-LastSync);  
+
 }

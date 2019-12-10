@@ -8,6 +8,11 @@
 #include "receive.h"
 
 SoftwareSerial loraSerial(10, 11);
+int out;
+bool Synced = false;
+int SyncFreq = 1000;
+int LastSync = 0;
+int SyncAttempt = 0;
 
 void setup() {
   int Startup_Check = 0;
@@ -68,15 +73,37 @@ void setup() {
 }
 
 void loop() {
-    int out;
-    
-    if (Serial.available() > 0) { //Read from serial monitor and send over UART LoRa wireless module
-        String input = Serial.readStringUntil('\n');
-        if (Transmit_String(input,loraSerial) == 0) Serial.println("radio tx OK");
-        else Serial.println("radio tx ERROR");
-    }
+    time_t TimeNow = now();
+    LastSync = TimeNow%SyncFreq;
+    Serial.println(LastSync);
 
-    if ((out = Receive_String(loraSerial)) == 0);
-    else if (out  == 2) Serial.println("radio rx DATA");
-    else Serial.println("radio rx ERROR");
+    if (LastSync <= 1) SyncAttempt = 0;
+    else if (Synced == false && SyncAttempt < 10) StartupSync();
+    else SendReceiveLoop();
+    
+    
+}
+
+void SendReceiveLoop() {
+  if (Serial.available() > 0) { //Read from serial monitor and send over UART LoRa wireless module
+      String input = Serial.readStringUntil('\n');
+      if (Transmit_String(input,loraSerial) == 0) Serial.println("radio tx OK");
+      else Serial.println("radio tx ERROR");
+  }
+
+  if ((out = Receive_String(loraSerial)) == 0);
+  else if (out  == 2) Serial.println("radio rx DATA");
+  else if (out  == 3) Serial.println("radio rx CONFIRMATION");
+  else Serial.println("radio rx ERROR");
+}
+
+void StartupSync() {
+  Serial.println("NODE: Sync Attempt");
+  Transmit_Hex("3C3C",loraSerial);
+  
+  if ((out = Receive_String(Synced,loraSerial)) == 0);
+  else if (out  == 2) Serial.println("radio rx DATA");
+  else if (out  == 3) Serial.println("radio rx CONFIRMATION");
+  else Serial.println("radio rx ERROR");
+  SyncAttempt += 1;
 }
