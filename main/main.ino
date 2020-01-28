@@ -20,14 +20,16 @@ int SyncAttempt = 0;
 
 
 void setup() {
-  logs("Start");
+
   int Startup_Check = 0;
   String str;
   //output LED pin
   pinMode(13, OUTPUT);
   led_off();
-
-
+  
+  pinMode(10, OUTPUT);
+  digitalWrite(10, HIGH);
+  
   Serial.begin(57600);
 
     // Reset rn2483
@@ -90,11 +92,13 @@ void setup() {
 
   if (Startup_Check > 0){
     Serial.println(F("NODE: Startup Failure"));
-    logs("Boot Fail");
+    time_t TimeNow = now();
+    logs(String(TimeNow) + " - Boot Fail");
   }
   else{
     Serial.println(F("NODE: Startup Success"));
-    logs("Boot Success");
+    time_t TimeNow = now();
+    logs(String(TimeNow) + " - Boot Success");
   }
 
   //write_sd();
