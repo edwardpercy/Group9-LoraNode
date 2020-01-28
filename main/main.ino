@@ -20,20 +20,24 @@ int SyncAttempt = 0;
 
 
 void setup() {
- 
+  logs("Start");
   int Startup_Check = 0;
   String str;
   //output LED pin
   pinMode(13, OUTPUT);
   led_off();
 
-  pinMode(7,OUTPUT);
-  digitalWrite(7, HIGH);
 
   Serial.begin(57600);
-  
 
-  loraSerial.begin(10);
+    // Reset rn2483
+  pinMode(7, OUTPUT);
+  digitalWrite(7, HIGH);
+  digitalWrite(7, LOW);
+  delay(500);
+  digitalWrite(7, HIGH);
+
+  loraSerial.begin(9600);
   
   loraSerial.setTimeout(1000);
   lora_autobaud(loraSerial);
@@ -80,18 +84,20 @@ void setup() {
   loraSerial.println("radio set bw 125");
   Startup_Check += wait_for_ok(loraSerial);
 
-  //load_sd();
-  write_sd();
+  load_sd();
+  
 
-  //enableRF();
+
   if (Startup_Check > 0){
     Serial.println(F("NODE: Startup Failure"));
-    logs(now() + " - Boot Success");
+    logs("Boot Fail");
   }
   else{
     Serial.println(F("NODE: Startup Success"));
-    logs(now() + " - Boot Fail");
+    logs("Boot Success");
   }
+
+  //write_sd();
 }
 
 void loop() {
@@ -102,13 +108,16 @@ void loop() {
     LastSync = TimeNow%SyncFreq;
     Serial.println(LastSync);
 
-    if (LastSync <= 1) SyncAttempt = 0;
-    else if (Synced == false && TimeNow > 5) StartupSync();
-    else if (Synced == true) SendReceiveLoop();
+    if (LastSync <= 1){
+      logs("Master Sync");
+      SyncAttempt = 0; //Ran once every SyncFreq
+      Serial.println("NODE - Master Sync");
+      delay(2000);
+    }
+    else if (Synced == false && TimeNow > 5) StartupSync(); //Ran when NODE is started
+    else if (Synced == true) SendReceiveLoop(); //Ran once every 2 seconds (Radio listening time)
     else delay(1000);
-    
-    
-    
+
 }
 
 void SendReceiveLoop() {
@@ -134,13 +143,13 @@ void StartupSync() {
   else if (out  == 4) {
     Synced = true;
     Serial.println(F("NODE: TIME_SYNCED"));
+    logs("Nearby Node Sync");
   }
   else Serial.println(F("radio rx ERROR"));
   SyncAttempt += 1;
   if (SyncAttempt > SyncRetries) {
     Synced = true;
-   
-  
+    logs("Auto Sync");
     
   }
   
