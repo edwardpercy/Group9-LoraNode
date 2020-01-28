@@ -6,8 +6,11 @@
 #include "transmit.h"
 #include "utilities.h"
 #include "receive.h"
+#include "sdcard.h"
+#include <SPI.h>
+#include <SD.h>
 
-SoftwareSerial loraSerial(10, 11);
+SoftwareSerial loraSerial(8,9);
 int out;
 bool Synced = false;
 int SyncFreq = 1000;
@@ -15,18 +18,26 @@ int SyncRetries = 10;
 int LastSync = 0;
 int SyncAttempt = 0;
 
+
 void setup() {
+ 
   int Startup_Check = 0;
   String str;
   //output LED pin
   pinMode(13, OUTPUT);
   led_off();
 
-  Serial.begin(57600);
+  pinMode(7,OUTPUT);
+  digitalWrite(7, HIGH);
 
-  loraSerial.begin(9600);
+  Serial.begin(57600);
+  
+
+  loraSerial.begin(10);
+  
   loraSerial.setTimeout(1000);
   lora_autobaud(loraSerial);
+
 
   led_on();
   delay(1000);
@@ -69,11 +80,24 @@ void setup() {
   loraSerial.println("radio set bw 125");
   Startup_Check += wait_for_ok(loraSerial);
 
-  if (Startup_Check > 0) Serial.println("NODE: Startup Failure");
-  else Serial.println("NODE: Startup Success");
+  //load_sd();
+  write_sd();
+
+  //enableRF();
+  if (Startup_Check > 0){
+    Serial.println(F("NODE: Startup Failure"));
+    logs(now() + " - Boot Success");
+  }
+  else{
+    Serial.println(F("NODE: Startup Success"));
+    logs(now() + " - Boot Fail");
+  }
 }
 
 void loop() {
+
+    
+
     time_t TimeNow = now();
     LastSync = TimeNow%SyncFreq;
     Serial.println(LastSync);
@@ -84,33 +108,40 @@ void loop() {
     else delay(1000);
     
     
+    
 }
 
 void SendReceiveLoop() {
   if (Serial.available() > 0) { //Read from serial monitor and send over UART LoRa wireless module
       String input = Serial.readStringUntil('\n');
-      if (Transmit_String(input,loraSerial) == 0) Serial.println("radio tx OK");
-      else Serial.println("radio tx ERROR");
+      if (Transmit_String(input,loraSerial) == 0) Serial.println(F("radio tx OK"));
+      else Serial.println(F("radio tx ERROR"));
   }
 
   if ((out = Receive_String(Synced,loraSerial)) == 0);
-  else if (out  == 2) Serial.println("radio rx DATA");
-  else if (out  == 3) Serial.println("radio rx CONFIRMATION");
-  else Serial.println("radio rx ERROR");
+  else if (out  == 2) Serial.println(F("radio rx DATA"));
+  else if (out  == 3) Serial.println(F("radio rx CONFIRMATION"));
+  else Serial.println(F("radio rx ERROR"));
 }
 
 void StartupSync() {
-  Serial.println("NODE: Sync Attempt");
+  Serial.println(F("NODE: Sync Attempt"));
   Transmit_Hex("3C3C",loraSerial);
   
   if ((out = Receive_String(Synced,loraSerial)) == 0);
-  else if (out  == 2) Serial.println("radio rx DATA");
-  else if (out  == 3) Serial.println("radio rx CONFIRMATION");
+  else if (out  == 2) Serial.println(F("radio rx DATA"));
+  else if (out  == 3) Serial.println(F("radio rx CONFIRMATION"));
   else if (out  == 4) {
     Synced = true;
-    Serial.println("NODE: TIME_SYNCED");
+    Serial.println(F("NODE: TIME_SYNCED"));
   }
-  else Serial.println("radio rx ERROR");
+  else Serial.println(F("radio rx ERROR"));
   SyncAttempt += 1;
-  if (SyncAttempt > SyncRetries) Synced = true;
+  if (SyncAttempt > SyncRetries) {
+    Synced = true;
+   
+  
+    
+  }
+  
 }
