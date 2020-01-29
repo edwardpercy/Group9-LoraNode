@@ -64,7 +64,10 @@ String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
   char char_array[str_len];
   str.toCharArray(char_array, str_len);
 
+
   char ReceivedChars[100];
+
+
 
   for (int i = 0; i < str_len; i += 2)  {
     if (i == 0) {

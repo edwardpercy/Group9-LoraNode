@@ -8,14 +8,18 @@ int Transmit_String(String input,SoftwareSerial &loraSerial) //MAX 50 char lengt
     char char_array[str_len];
     input.toCharArray(char_array, str_len);
 
+
     char RBuffer[30];
+
     sprintf(RBuffer, "00");
 
     for (int i = 0; i < str_len; ++i) {
     sprintf(RBuffer + strlen(RBuffer), "%02X", char_array[i]);
     }
 
+
     char TData[30];
+
     sprintf(TData, "radio tx %s", RBuffer);
     Serial.println(TData);
     led_on();
@@ -37,7 +41,10 @@ int Transmit_LastSync(SoftwareSerial &loraSerial) //MAX 50 char length
     char char_array[str_len];
     input.toCharArray(char_array, str_len);
 
+
     char RBuffer[30];
+
+
     sprintf(RBuffer, "3E3E");
 
     for (int i = 0; i < str_len; ++i) {
@@ -45,6 +52,7 @@ int Transmit_LastSync(SoftwareSerial &loraSerial) //MAX 50 char length
     }
 
     char TData[30];
+
     sprintf(TData, "radio tx %s", RBuffer);
     Serial.println(TData);
     led_on();
