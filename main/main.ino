@@ -13,9 +13,11 @@
 SoftwareSerial loraSerial(8,9);
 int out;
 bool Synced = false;
-int SyncFreq = 1000;
+int SyncFreq = 20;
+int MasterSyncFreq = 1000;
 int SyncRetries = 10;
 int LastSync = 0;
+int Sync = 0;
 int SyncAttempt = 0;
 
 
@@ -27,12 +29,12 @@ void setup() {
   pinMode(13, OUTPUT);
   led_off();
   
-  pinMode(10, OUTPUT);
-  digitalWrite(10, HIGH);
-  
+
   Serial.begin(57600);
 
-    // Reset rn2483
+  pinMode (4, OUTPUT);
+  
+  // Reset rn2483
   pinMode(7, OUTPUT);
   digitalWrite(7, HIGH);
   digitalWrite(7, LOW);
@@ -87,21 +89,18 @@ void setup() {
   Startup_Check += wait_for_ok(loraSerial);
 
   load_sd();
-  
-
-
+  logs("Boot");
   if (Startup_Check > 0){
     Serial.println(F("NODE: Startup Failure"));
-    time_t TimeNow = now();
-    logs(String(TimeNow) + " - Boot Fail");
+
+    logs("Boot Fail");
   }
   else{
     Serial.println(F("NODE: Startup Success"));
-    time_t TimeNow = now();
-    logs(String(TimeNow) + " - Boot Success");
+
+    logs("Boot Success");
   }
 
-  //write_sd();
 }
 
 void loop() {
@@ -109,17 +108,24 @@ void loop() {
     
 
     time_t TimeNow = now();
-    LastSync = TimeNow%SyncFreq;
+    LastSync = TimeNow%MasterSyncFreq;
+    Sync = TimeNow%SyncFreq;
     Serial.println(LastSync);
 
-    if (LastSync <= 1){
+    
+    if (Synced == false && TimeNow > 3) StartupSync(); //Ran when NODE is started
+    
+    else if (LastSync <= 30){ //Runs for 30 seconds every major sync
       logs("Master Sync");
-      SyncAttempt = 0; //Ran once every SyncFreq
-      Serial.println("NODE - Master Sync");
+      SyncAttempt = 0; 
       delay(2000);
     }
-    else if (Synced == false && TimeNow > 5) StartupSync(); //Ran when NODE is started
-    else if (Synced == true) SendReceiveLoop(); //Ran once every 2 seconds (Radio listening time)
+    else if (Sync <= 5){ //Runs for 5 seconds every minor sync
+      
+      SendReceiveLoop();
+    }
+      
+    else if (Synced == true) delay(2000); //Ran once every 2 seconds (Radio listening time)
     else delay(1000);
 
 }
@@ -127,7 +133,7 @@ void loop() {
 void SendReceiveLoop() {
   if (Serial.available() > 0) { //Read from serial monitor and send over UART LoRa wireless module
       String input = Serial.readStringUntil('\n');
-      if (Transmit_String(input,loraSerial) == 0) Serial.println(F("radio tx OK"));
+      if (Transmit_String(input,loraSerial) == 0) Serial.println("radio tx OK");
       else Serial.println(F("radio tx ERROR"));
   }
 
@@ -138,6 +144,7 @@ void SendReceiveLoop() {
 }
 
 void StartupSync() {
+  logs("Sync Attempt");
   Serial.println(F("NODE: Sync Attempt"));
   Transmit_Hex("3C3C",loraSerial);
   

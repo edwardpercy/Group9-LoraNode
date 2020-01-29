@@ -65,7 +65,7 @@ String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
   str.toCharArray(char_array, str_len);
 
 
-  char ReceivedChars[100];
+  char ReceivedChars[(str_len*2)+10];
 
 
 
@@ -100,5 +100,4 @@ void SyncTime(String ReceivedLastSync){
   adjustTime(ReceivedLastSync.toInt()-LastSync); 
   TimeAdjusted = true;
   Serial.println("radio rx TIME_SYNCED");
-
 }

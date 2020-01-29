@@ -4,8 +4,6 @@ void load_sd()
 {
 
     Sd2Card card;
-    SdVolume volume;
-    SdFile root;
     
     const int chipSelect = 10;
   
@@ -29,7 +27,7 @@ void logs(String info){
     File Diag;
     
     if (!SD.begin(10)) {
-      Serial.println("SD: FAIL");
+
       //while (1);
     }
     // open the file. note that only one file can be open at a time,
@@ -38,41 +36,14 @@ void logs(String info){
   
     // if the file opened okay, write to it:
     if (Diag) {
-     
-      Diag.println(info);
+      time_t TimeNow = now();
+      Diag.println(String(TimeNow) + " - " + info);
       // close the file:
       Diag.close();
    
     } else {
       // if the file didn't open, print an error:
-      Serial.println("SD: ERROR");
-    }
-    SD.end();
-  
-}
 
-void write_sd(){
-
-    File myFile;
-    
-    if (!SD.begin(10)) {
-      Serial.println("SD: FAIL");
-      //while (1);
-    }
-   
-  
-    // open the file. note that only one file can be open at a time,
-    // so you have to close this one before opening another.
-    myFile = SD.open("test.txt", FILE_WRITE);
-  
-    // if the file opened okay, write to it:
-    if (myFile) {
-      Serial.print("Writing to test.txt...");
-      myFile.println("testing 1, 2, 3.");
-      myFile.close();
-    } else {
-      // if the file didn't open, print an error:
-      Serial.println("SD: ERROR");
     }
     SD.end();
   
