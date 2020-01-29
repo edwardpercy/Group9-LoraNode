@@ -8,6 +8,7 @@
 #include <SPI.h>
 #include <SD.h>
 
+
 void load_sd();
 void write_sd();
 void logs(String info);
