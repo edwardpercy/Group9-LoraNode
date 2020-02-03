@@ -6,6 +6,7 @@
 #include "transmit.h"
 #include "utilities.h"
 #include "receive.h"
+#include "sensors.h"
 #include "sdcard.h"
 #include <SPI.h>
 #include <SD.h>
@@ -22,13 +23,12 @@ int SyncAttempt = 0;
 
 
 void setup() {
-
+  
   int Startup_Check = 0;
   String str;
   //output LED pin
   pinMode(13, OUTPUT);
   led_off();
-  
 
   Serial.begin(57600);
 
@@ -88,8 +88,17 @@ void setup() {
   loraSerial.println("radio set bw 125");
   Startup_Check += wait_for_ok(loraSerial);
 
+  //Sensors setup
+  Dps310 Dps310PressureSensor = Dps310();
+  Adafruit_SHT31 sht31 = Adafruit_SHT31();
+  Dps310PressureSensor.begin(Wire);
+  sht31.begin(0x44);
+
   load_sd();
   logs("Boot");
+  
+  get_sensordata(sht31, Dps310PressureSensor);
+  
   if (Startup_Check > 0){
     Serial.println(F("NODE: Startup Failure"));
 
