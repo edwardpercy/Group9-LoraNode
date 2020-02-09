@@ -32,7 +32,7 @@ void setup() {
 
   Serial.begin(57600);
 
-  //pinMode (4, OUTPUT);
+  pinMode (4, OUTPUT);
   
   // Reset rn2483
   pinMode(7, OUTPUT);
