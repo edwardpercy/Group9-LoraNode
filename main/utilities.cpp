@@ -45,18 +45,3 @@ int wait_for_ok(SoftwareSerial &loraSerial)
     return 1;
   }
 }
-
-void toggle_led()
-{
-  digitalWrite(13, !digitalRead(13));
-}
-
-void led_on()
-{
-  digitalWrite(13, 1);
-}
-
-void led_off()
-{
-  digitalWrite(13, 0);
-}

@@ -1,26 +1,26 @@
 #include "sdcard.h"
-
-void load_sd()
-{
-
-    Sd2Card card;
-    
-    const int chipSelect = 10;
-  
-  
-    // we'll use the initialization code from the utility libraries
-    // since we're just testing if the card is working!
-    if (!card.init(SPI_HALF_SPEED, chipSelect)) {
-      Serial.println(F("SD: FAIL"));
-      //while (1);
-    } else {
-      
-      Serial.println(F("SD: CONNECTED"));
-    }
-  
-
-  
-}
+//
+//void load_sd()
+//{
+//
+//    Sd2Card card;
+//    
+//    const int chipSelect = 10;
+//  
+//  
+//    // we'll use the initialization code from the utility libraries
+//    // since we're just testing if the card is working!
+//    if (!card.init(SPI_HALF_SPEED, chipSelect)) {
+//      Serial.println(F("SD: FAIL"));
+//      //while (1);
+//    } else {
+//      
+//      Serial.println(F("SD: C"));
+//    }
+//  
+//
+//  
+//}
 
 void logs(String info){
 

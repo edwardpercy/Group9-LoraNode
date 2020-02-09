@@ -27,7 +27,11 @@ int Receive_String(bool Synced,SoftwareSerial &loraSerial){
       else if (str.indexOf("004000") == 0) return 3;
       else{
         if (str.indexOf("3C3C") != 0 && Synced == true) Transmit_Hex("004000",loraSerial);
-        Serial.println("Received Message: "+ ProcessMessage(Synced,loraSerial,str));
+        Serial.println("rx                       TEMP: "+ ProcessMessage(Synced,loraSerial,str));
+        if (TimeAdjusted == true){
+          TimeAdjusted = false;
+          return 4;
+        }
         return 2;
       }
     }
@@ -38,7 +42,7 @@ int Receive_String(bool Synced,SoftwareSerial &loraSerial){
   }
   else
   {
-    Serial.println("radio not going into receive mode");
+    Serial.println("rx E");
     return 1;
   }
 }
@@ -99,5 +103,5 @@ void SyncTime(String ReceivedLastSync){
   
   adjustTime(ReceivedLastSync.toInt()-LastSync); 
   TimeAdjusted = true;
-  Serial.println("radio rx TIME_SYNCED");
+  Serial.println("rx TS");
 }

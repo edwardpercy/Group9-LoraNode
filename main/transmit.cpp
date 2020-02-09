@@ -22,9 +22,7 @@ int Transmit_String(String input,SoftwareSerial &loraSerial) //MAX 50 char lengt
 
     sprintf(TData, "radio tx %s", RBuffer);
     Serial.println(TData);
-    led_on();
     loraSerial.println(TData);
-    led_off();
 
     return wait_for_ok_plus_reset(loraSerial);
 }
@@ -55,9 +53,7 @@ int Transmit_LastSync(SoftwareSerial &loraSerial) //MAX 50 char length
 
     sprintf(TData, "radio tx %s", RBuffer);
     Serial.println(TData);
-    led_on();
     loraSerial.println(TData);
-    led_off();
 
     return wait_for_ok_plus_reset(loraSerial);
 }
@@ -72,9 +68,7 @@ int Transmit_Hex(String input,SoftwareSerial &loraSerial) //MAX 50 Hex
 
     char TData[(str_len*2)];
     sprintf(TData, "radio tx %s", char_array);
-    led_on();
     loraSerial.println(TData);
-    led_off();
 
     return wait_for_ok_plus_reset(loraSerial);
 }
