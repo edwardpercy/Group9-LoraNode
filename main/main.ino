@@ -14,13 +14,15 @@
 SoftwareSerial loraSerial(8,9);
 int out;
 bool Synced = false;
-int SyncFreq = 20;
+int SyncFreq = 40;
 int MasterSyncFreq = 1000;
-int SyncRetries = 10;
+int SyncRetries = 20;
 int LastSync = 0;
 int Sync = 0;
 int SyncAttempt = 0;
-int temp = 0;
+float temp = 0;
+int id = 0;
+Adafruit_SHT31 sht31;
 
 void setup() {
   
@@ -61,32 +63,14 @@ void setup() {
   Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set freq 869100000");
   Startup_Check += wait_for_ok(loraSerial);
-  //loraSerial.println("radio set pwr 14");
-  //Startup_Check += wait_for_ok(loraSerial);
-  //loraSerial.println("radio set sf sf7");
-  //Startup_Check += wait_for_ok(loraSerial);
-  //loraSerial.println("radio set afcbw 41.7");
-  //Startup_Check += wait_for_ok(loraSerial);
-  //loraSerial.println("radio set rxbw 125");
-  //  Startup_Check += wait_for_ok(loraSerial);
-  //  loraSerial.println("radio set prlen 8");
-  //  Startup_Check += wait_for_ok(loraSerial);
-  //  loraSerial.println("radio set crc on");
-  //  Startup_Check += wait_for_ok(loraSerial);
-  //  loraSerial.println("radio set iqi off");
-  //  Startup_Check += wait_for_ok(loraSerial);
-  //  loraSerial.println("radio set cr 4/5");
-  //  Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set wdt 2000"); //disable for continuous reception (Currently: 2s)
   Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set sync 12");
   Startup_Check += wait_for_ok(loraSerial);
-  //loraSerial.println("radio set bw 125");
-  //Startup_Check += wait_for_ok(loraSerial);
 
   //Sensors setup
   //Dps310 Dps310PressureSensor = Dps310();
-  Adafruit_SHT31 sht31 = Adafruit_SHT31();
+  sht31 = Adafruit_SHT31();
   //Dps310PressureSensor.begin(Wire);
   sht31.begin(0x44);
 
@@ -115,8 +99,8 @@ void loop() {
     time_t TimeNow = now();
     LastSync = TimeNow%MasterSyncFreq;
     Sync = TimeNow%SyncFreq;
-    Serial.println(LastSync);
-
+    
+    
     
     if (Synced == false && TimeNow > 3) StartupSync(); //Ran when NODE is started
     
@@ -125,26 +109,23 @@ void loop() {
       SyncAttempt = 0; 
       delay(2000);
     }
-    else if (Sync <= 5){ //Runs for 5 seconds every minor sync
-      
+    else if (Sync <= 10){ //Runs for 5 seconds every minor sync
+      Serial.println("ID: " + String(id) + " TIME:" + String(LastSync));
       SendReceiveLoop();
     }
       
-    else if (Synced == true) delay(2000); //Ran once every 2 seconds (Radio listening time)
+    else if (Synced == true) {
+      Serial.println(F("SLEEP"));
+      delay(2000); //Ran once every 2 seconds (Radio listening time)
+    }
     else delay(1000);
 
 }
 
 void SendReceiveLoop() {
-//
-//  if (Serial.available() > 0) { //Read from serial monitor and send over UART LoRa wireless module
-//      String input = Serial.readStringUntil('\n');
-//      if (Transmit_String(input,loraSerial) == 0) Serial.println("tx S");
-//      else Serial.println(F("tx E"));
-//  }
 
   if ((out = Receive_String(Synced,loraSerial)) == 0){
-    Serial.println(("rx L"));
+    Serial.println(("rx L")); //Listening
   }
   else if (out  == 2){
     Serial.println(F("rx D")); //Data
@@ -157,13 +138,14 @@ void SendReceiveLoop() {
   }
 
   if (random(0,2)== 0){
-      if (Transmit_String(String(temp),loraSerial) == 0) Serial.println("tx S");
+      temp = get_sensordata(sht31);
+      if (Transmit_String("*C" + String(id) + String(temp),loraSerial) == 0) Serial.println("tx S");
       else Serial.println(F("tx E"));
   }
 }
 
 void StartupSync() {
-  logs("SA"); //Sync Attempt
+  //logs("SA"); //Sync Attempt
   Serial.println(F("NODE: SA"));
   Transmit_Hex("3C3C",loraSerial);
   

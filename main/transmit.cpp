@@ -34,6 +34,7 @@ int Transmit_LastSync(SoftwareSerial &loraSerial) //MAX 50 char length
     int LastSync = TimeNow%SyncFreq;
     
     String input = String(LastSync);
+    input = String(id) + input;
     String str;
     int str_len = input.length() + 1;
     char char_array[str_len];

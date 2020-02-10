@@ -7,6 +7,8 @@
 #include <arduino.h>
 #include <SoftwareSerial.h>
 
+extern int id;
+
 int Transmit_String(String input,SoftwareSerial &loraSerial);
 int Transmit_Hex(String input,SoftwareSerial &loraSerial);
 int Transmit_LastSync(SoftwareSerial &loraSerial);

@@ -27,7 +27,7 @@ int Receive_String(bool Synced,SoftwareSerial &loraSerial){
       else if (str.indexOf("004000") == 0) return 3;
       else{
         if (str.indexOf("3C3C") != 0 && Synced == true) Transmit_Hex("004000",loraSerial);
-        Serial.println("rx                       TEMP: "+ ProcessMessage(Synced,loraSerial,str));
+        ProcessMessage(Synced,loraSerial,str);
         if (TimeAdjusted == true){
           TimeAdjusted = false;
           return 4;
@@ -63,7 +63,7 @@ char h2c(char c1, char c2)
 
 String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
   
-  
+  Serial.println(str);
   int str_len = str.length() + 1;
   char char_array[str_len];
   str.toCharArray(char_array, str_len);
@@ -83,10 +83,19 @@ String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
   }
 
   
-  if ( str.indexOf("3C3C") == 0 && Synced == true) Transmit_LastSync(loraSerial);
-  if ( str.indexOf("3E3E") == 0 ) SyncTime(ReceivedChars);
+  if ( str.indexOf("3C3C") == 0 && Synced == true) Transmit_LastSync(loraSerial); //Sync request
+  if ( str.indexOf("3E3E") == 0 ) SyncTime(ReceivedChars); //Sync received
+  if ( str.indexOf("002A43") == 0 ){
 
+    String RChars = String(ReceivedChars);
+    RChars.remove(0, 2);
+    String rid = String(RChars[0]);
+    RChars.remove(0, 1);
 
+    Serial.println("                                " + String(RChars) + "°C @ NODE" + rid);
+  }
+
+  
     
 
 
@@ -96,7 +105,15 @@ String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
 void SyncTime(String ReceivedLastSync){
 
   ReceivedLastSync.remove(0, 2);
-  Serial.println(ReceivedLastSync);
+  String receiveID = String(ReceivedLastSync[0]);
+ 
+  int rid = receiveID.toInt();
+  rid += 1;
+
+  if (rid > 9) id = 0;
+  else id = rid;
+
+  ReceivedLastSync.remove(0, 1);
   int SyncFreq = 1000;
   time_t TimeNow = now();
   int LastSync = TimeNow%SyncFreq;

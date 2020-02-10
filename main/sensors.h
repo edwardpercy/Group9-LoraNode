@@ -8,6 +8,6 @@
 
 
 //void get_sensordata(Adafruit_SHT31 sht31, Dps310 Dps310PressureSensor);
-int get_sensordata(Adafruit_SHT31 sht31);
+float get_sensordata(Adafruit_SHT31 sht31);
 
 #endif

@@ -1,9 +1,9 @@
 #include "sensors.h"
 
-int get_sensordata(Adafruit_SHT31 sht31){
+float get_sensordata(Adafruit_SHT31 sht31){
 
-  int t = sht31.readTemperature();
-  int h = sht31.readHumidity();
+  float t = sht31.readTemperature();
+  float h = sht31.readHumidity();
 
   Serial.println(t);
   Serial.println(h);
