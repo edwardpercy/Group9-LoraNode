@@ -83,9 +83,9 @@ String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
   }
 
   
-  if ( str.indexOf("3C3C") == 0 && Synced == true) Transmit_LastSync(loraSerial); //Sync request
-  if ( str.indexOf("3E3E") == 0 ) SyncTime(ReceivedChars); //Sync received
-  if ( str.indexOf("002A43") == 0 ){
+  if ( str.indexOf("3C3C") == 0 && Synced == true) Transmit_LastSync(loraSerial); //Send Sync Data
+  if ( str.indexOf("3E3E") == 0 ) SyncTime(ReceivedChars); //Sync with received sync data
+  if ( str.indexOf("002A43") == 0 ){ //Received temperature data
 
     String RChars = String(ReceivedChars);
     RChars.remove(0, 2);
@@ -118,7 +118,7 @@ void SyncTime(String ReceivedLastSync){
   time_t TimeNow = now();
   int LastSync = TimeNow%SyncFreq;
   
-  adjustTime(ReceivedLastSync.toInt()-LastSync); 
+  adjustTime((ReceivedLastSync.toInt()+2)-LastSync); 
   TimeAdjusted = true;
   Serial.println("rx TS");
 }

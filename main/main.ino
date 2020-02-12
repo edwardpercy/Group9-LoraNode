@@ -22,6 +22,9 @@ int Sync = 0;
 int SyncAttempt = 0;
 float temp = 0;
 int id = 0;
+bool ms_initiator = true; 
+bool ms_finish = true;
+
 Adafruit_SHT31 sht31;
 
 void setup() {
@@ -65,7 +68,7 @@ void setup() {
   Startup_Check += wait_for_ok(loraSerial);
   loraSerial.println("radio set wdt 2000"); //disable for continuous reception (Currently: 2s)
   Startup_Check += wait_for_ok(loraSerial);
-  loraSerial.println("radio set sync 12");
+  loraSerial.println("radio set sync 18");
   Startup_Check += wait_for_ok(loraSerial);
 
   //Sensors setup
@@ -102,21 +105,28 @@ void loop() {
     
     
     
-    if (Synced == false && TimeNow > 3) StartupSync(); //Ran when NODE is started
-    
-    else if (LastSync <= 30){ //Runs for 30 seconds every major sync
-      logs("MS");
-      SyncAttempt = 0; 
-      delay(2000);
+    if (Synced == false) {
+      StartupSync(); //Ran when NODE is started to sync time with nearby nodes
     }
-    else if (Sync <= 10){ //Runs for 5 seconds every minor sync
-      Serial.println("ID: " + String(id) + " TIME:" + String(LastSync));
+    else if (LastSync <= 2){ //Indicates the start of the master sync
+      ms_finish = false;
+    }
+    else if (LastSync <= 500 && ms_finish == false){ //Runs for a maximum of 500s or until the sync is complete (Master sync)
+      Serial.println(("MS" + String(ms_finish)));
+      SendReceiveLoop();
+    }
+    else if (Sync <= 10){ //Minor Sync
+      Serial.println("ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
       SendReceiveLoop();
     }
       
-    else if (Synced == true) {
+    else if (Synced == true) { //Sleep - low power mode
+      Serial.println(String(now()));
+      loraSerial.println("sys sleep 29");
+      Serial.println(wait_for_ok(loraSerial));
+
       Serial.println(F("SLEEP"));
-      delay(2000); //Ran once every 2 seconds (Radio listening time)
+      delay(30100); //Ran once every 2 seconds (Radio listening time)
     }
     else delay(1000);
 
@@ -137,11 +147,11 @@ void SendReceiveLoop() {
     Serial.println(F("rx E")); //Error
   }
 
-  if (random(0,2)== 0){
-      temp = get_sensordata(sht31);
-      if (Transmit_String("*C" + String(id) + String(temp),loraSerial) == 0) Serial.println("tx S");
-      else Serial.println(F("tx E"));
-  }
+//  if (random(0,2)== 0){
+//      temp = get_sensordata(sht31);
+//      if (Transmit_String("*C" + String(id) + String(temp),loraSerial) == 0) Serial.println("tx S");
+//      else Serial.println(F("tx E"));
+//  }
 }
 
 void StartupSync() {

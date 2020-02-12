@@ -55,7 +55,7 @@ int Transmit_LastSync(SoftwareSerial &loraSerial) //MAX 50 char length
     sprintf(TData, "radio tx %s", RBuffer);
     Serial.println(TData);
     loraSerial.println(TData);
-
+    ms_initiator = false;
     return wait_for_ok_plus_reset(loraSerial);
 }
 
