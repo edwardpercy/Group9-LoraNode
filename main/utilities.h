@@ -5,10 +5,10 @@
 #include <arduino.h>
 #include <SoftwareSerial.h>
 
-
-void lora_autobaud(SoftwareSerial &loraSerial);
-int wait_for_ok_plus_reset(SoftwareSerial &loraSerial);
-int wait_for_ok(SoftwareSerial &loraSerial);
+extern SoftwareSerial loraSerial;
+void lora_autobaud();
+int wait_for_ok_plus_reset();
+int wait_for_ok();
 
 
 #endif

@@ -24,7 +24,7 @@ int Receive_String(bool Synced){
       }
       else if (str.indexOf(F("004000")) == 0) return 3;
       else{
-        if (str.indexOf(F("3C3C")) != 0 && Synced == true) Transmit_Hex("004000");
+        if (str.indexOf(F("3C3C")) != 0 && Synced == true) Transmit_Hex(F("004000"));
         ProcessMessage(Synced,str);
         if (TimeAdjusted == true){
           TimeAdjusted = false;

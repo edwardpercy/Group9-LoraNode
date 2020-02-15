@@ -13,15 +13,13 @@
 
 SoftwareSerial loraSerial(8,9);
 
-int out;
 bool Synced = false;
-int SyncFreq = 40;
-int MasterSyncFreq = 1000;
-int SyncRetries = 14;
+const PROGMEM int SyncFreq = 40;
+const PROGMEM int MasterSyncFreq = 1000;
+const PROGMEM int SyncRetries = 14;
 int LastSync = 0;
 int Sync = 0;
 int SyncAttempt = 0;
-float temp = 0;
 int id = 0;
 bool ms_initiator = true; 
 bool ms_finish = true;
@@ -43,7 +41,7 @@ void setup() {
   loraSerial.begin(9600);
   
   loraSerial.setTimeout(1000);
-  lora_autobaud(loraSerial);
+  lora_autobaud();
 
   loraSerial.listen();
   loraSerial.readStringUntil('\n');
@@ -54,24 +52,22 @@ void setup() {
 
   Serial.println(F("NODE: Starting"));
   loraSerial.println(F("radio set mod lora"));
-  Startup_Check += wait_for_ok(loraSerial);
+  Startup_Check += wait_for_ok();
   loraSerial.println(F("radio set freq 869100000"));
-  Startup_Check += wait_for_ok(loraSerial);
+  Startup_Check += wait_for_ok();
   loraSerial.println(F("radio set wdt 2000")); //disable for continuous reception (Currently: 2s)
-  Startup_Check += wait_for_ok(loraSerial);
+  Startup_Check += wait_for_ok();
   loraSerial.println(F("radio set sync 18"));
-  Startup_Check += wait_for_ok(loraSerial);
+  Startup_Check += wait_for_ok();
 
   //Sensors setup
   Dps310PressureSensor = Dps310();
   sht31 = Adafruit_SHT31();
   Dps310PressureSensor.begin(Wire);
   sht31.begin(0x44);
-
-  load_sd();
-
+  //logs("a");
   //get_sensordata(sht31, Dps310PressureSensor);
-  temp = get_sensordata();
+  get_sensordata();
   
   if (Startup_Check > 0){
     Serial.println(F("NODE: F"));
@@ -92,14 +88,15 @@ void loop() {
   
       StartupSync(); //Ran when NODE is started to sync time with nearby nodes
     }
-    else if (LastSync <= 1){ //Indicates the start of the master sync
-     
-      ms_finish = false;
-    }
     else if (LastSync <= 500 && ms_finish == false){ //Runs for a maximum of 500s or until the sync is complete (Master sync)
       
       SendReceiveLoop();
     }
+    else if (LastSync <= 5){ //Indicates the start of the master sync
+     
+      ms_finish = false;
+    }
+    
     
     else if (Sync <= 10){ //Minor Sync
       Serial.println("ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
@@ -108,8 +105,8 @@ void loop() {
       
     else if (Synced == true) { //Sleep - low power mode
       Serial.println(String(now()));
-      loraSerial.println("sys sleep 29");
-      Serial.println(wait_for_ok(loraSerial));
+      loraSerial.println(F("sys sleep 29"));
+      Serial.println(wait_for_ok());
 
       Serial.println(F("SLEEP"));
       delay(30150); //Ran once every 2 seconds (Radio listening time)
@@ -119,7 +116,7 @@ void loop() {
 }
 
 void SendReceiveLoop() {
-
+  int out;
   if ((out = Receive_String(Synced)) == 0){
     Serial.println(F("rx L")); //Listening
   }
@@ -141,15 +138,15 @@ void SendReceiveLoop() {
 }
 
 void StartupSync() {
+  int out;
   Serial.println(F("NODE: SA"));
-  Transmit_Hex("3C3C");
+  Transmit_Hex(F("3C3C"));
   
   if ((out = Receive_String(Synced)) == 0);
   else if (out  == 2) Serial.println(F("rx D"));
   else if (out  == 3) Serial.println(F("rx C"));
   else if (out  == 4) {
     Synced = true;
-
   }
   else Serial.println(F("rx E"));
   SyncAttempt += 1;

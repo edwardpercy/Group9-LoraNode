@@ -1,6 +1,6 @@
 #include "utilities.h"
 
-void lora_autobaud(SoftwareSerial &loraSerial)
+void lora_autobaud()
 {
  
   String response = "";
@@ -14,7 +14,7 @@ void lora_autobaud(SoftwareSerial &loraSerial)
     response = loraSerial.readStringUntil('\n');
   }
 }
-int wait_for_ok_plus_reset(SoftwareSerial &loraSerial)
+int wait_for_ok_plus_reset()
 {
 
   String str;
@@ -31,7 +31,7 @@ int wait_for_ok_plus_reset(SoftwareSerial &loraSerial)
   }
 }
 
-int wait_for_ok(SoftwareSerial &loraSerial)
+int wait_for_ok()
 {
 
   String str;

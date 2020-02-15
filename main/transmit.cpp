@@ -16,13 +16,7 @@ int Transmit_String(String input) //MAX 50 char length
     }
 
 
-    char TData[(str_len*2)+15];
-
-    sprintf(TData, "radio tx %s", RBuffer);
-    Serial.println(TData);
-    loraSerial.println(TData);
-
-    return wait_for_ok_plus_reset(loraSerial);
+    return Transmit_Hex(RBuffer);
 }
 
 int Transmit_LastSync() //MAX 50 char length
@@ -48,13 +42,7 @@ int Transmit_LastSync() //MAX 50 char length
     sprintf(RBuffer + strlen(RBuffer), "%02X", char_array[i]);
     }
 
-    char TData[(str_len*2)+15];
-
-    sprintf(TData, "radio tx %s", RBuffer);
-    Serial.println(TData);
-    loraSerial.println(TData);
-    ms_initiator = false;
-    return wait_for_ok_plus_reset(loraSerial);
+    return Transmit_Hex(RBuffer);
 }
 
 int Transmit_Hex(String input) //MAX 50 Hex 
@@ -69,5 +57,5 @@ int Transmit_Hex(String input) //MAX 50 Hex
     sprintf(TData, "radio tx %s", char_array);
     loraSerial.println(TData);
 
-    return wait_for_ok_plus_reset(loraSerial);
+    return wait_for_ok_plus_reset();
 }
