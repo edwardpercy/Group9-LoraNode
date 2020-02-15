@@ -36,8 +36,8 @@ void logs(String info){
   
     // if the file opened okay, write to it:
     if (Diag) {
-      time_t TimeNow = now();
-      Diag.println(String(TimeNow) + " - " + info);
+     
+      Diag.println(String(now()) + " - " + info);
       // close the file:
       Diag.close();
    

@@ -7,10 +7,10 @@
 #include <SoftwareSerial.h>
 #include "transmit.h"
 
+extern SoftwareSerial loraSerial;
 
-
-int Receive_String(bool Synced,SoftwareSerial &loraSerial);
-String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str);
+int Receive_String(bool Synced);
+String ProcessMessage(bool Synced,String str);
 char h2c(char c1, char c2);
 void SyncTime(String ReceivedLastSync);
 

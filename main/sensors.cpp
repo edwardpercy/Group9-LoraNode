@@ -1,6 +1,6 @@
 #include "sensors.h"
 
-float get_sensordata(Adafruit_SHT31 sht31){
+float get_sensordata(){
 
   float t = sht31.readTemperature();
   float h = sht31.readHumidity();

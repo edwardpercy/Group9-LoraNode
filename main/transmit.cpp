@@ -1,7 +1,7 @@
 #include "transmit.h"
 #include "utilities.h"
 
-int Transmit_String(String input,SoftwareSerial &loraSerial) //MAX 50 char length
+int Transmit_String(String input) //MAX 50 char length
 {
     String str;
     int str_len = input.length() + 1;
@@ -10,8 +10,6 @@ int Transmit_String(String input,SoftwareSerial &loraSerial) //MAX 50 char lengt
 
 
     char RBuffer[(str_len*2)+5];
-
-    sprintf(RBuffer, "00");
 
     for (int i = 0; i < str_len; ++i) {
     sprintf(RBuffer + strlen(RBuffer), "%02X", char_array[i]);
@@ -27,7 +25,7 @@ int Transmit_String(String input,SoftwareSerial &loraSerial) //MAX 50 char lengt
     return wait_for_ok_plus_reset(loraSerial);
 }
 
-int Transmit_LastSync(SoftwareSerial &loraSerial) //MAX 50 char length
+int Transmit_LastSync() //MAX 50 char length
 {
     int SyncFreq = 1000;
     time_t TimeNow = now();
@@ -59,7 +57,7 @@ int Transmit_LastSync(SoftwareSerial &loraSerial) //MAX 50 char length
     return wait_for_ok_plus_reset(loraSerial);
 }
 
-int Transmit_Hex(String input,SoftwareSerial &loraSerial) //MAX 50 Hex 
+int Transmit_Hex(String input) //MAX 50 Hex 
 {
     String str;
     int str_len = input.length() + 1;

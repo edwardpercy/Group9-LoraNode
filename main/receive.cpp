@@ -2,32 +2,30 @@
 
 bool TimeAdjusted = false;
 
-int Receive_String(bool Synced,SoftwareSerial &loraSerial){
+int Receive_String(bool Synced){
   String str;
  
-  loraSerial.println("radio rx 0"); //wait for 2 seconds to receive
+  loraSerial.println(F("radio rx 0")); //wait for 2 seconds to receive
   str = loraSerial.readStringUntil('\n');
   
-  if ( str.indexOf("ok") == 0 )
+  if ( str.indexOf(F("ok")) == 0 )
   {
     str = String("");
     while (str == "")
     {
       str = loraSerial.readStringUntil('\n');
     }
-    if ( str.indexOf("radio_rx") == 0 )
+    if ( str.indexOf(F("radio_rx")) == 0 )
     {
       str.remove(0, 10);
-      //Serial.println(str);
-
       if (TimeAdjusted == true){
         TimeAdjusted = false;
         return 4;
       }
-      else if (str.indexOf("004000") == 0) return 3;
+      else if (str.indexOf(F("004000")) == 0) return 3;
       else{
-        if (str.indexOf("3C3C") != 0 && Synced == true) Transmit_Hex("004000",loraSerial);
-        ProcessMessage(Synced,loraSerial,str);
+        if (str.indexOf(F("3C3C")) != 0 && Synced == true) Transmit_Hex("004000");
+        ProcessMessage(Synced,str);
         if (TimeAdjusted == true){
           TimeAdjusted = false;
           return 4;
@@ -42,7 +40,7 @@ int Receive_String(bool Synced,SoftwareSerial &loraSerial){
   }
   else
   {
-    Serial.println("rx E");
+    Serial.println(F("rx E"));
     return 1;
   }
 }
@@ -61,7 +59,7 @@ char h2c(char c1, char c2)
   return output;
 }
 
-String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
+String ProcessMessage(bool Synced,String str) {
   
   Serial.println(str);
   int str_len = str.length() + 1;
@@ -83,27 +81,22 @@ String ProcessMessage(bool Synced,SoftwareSerial &loraSerial,String str) {
   }
 
   
-  if ( str.indexOf("3C3C") == 0 && Synced == true) Transmit_LastSync(loraSerial); //Send Sync Data
-  if ( str.indexOf("3E3E") == 0 ) SyncTime(ReceivedChars); //Sync with received sync data
-  if ( str.indexOf("002A43") == 0 ){ //Received temperature data
+  if ( str.indexOf(F("3C3C")) == 0 && Synced == true) Transmit_LastSync(); //Send Sync Data
+  if ( str.indexOf(F("3E3E")) == 0 ) SyncTime(ReceivedChars); //Sync with received sync data
+  if ( str.indexOf(F("2A43")) == 0 ){ //Received temperature data
 
     String RChars = String(ReceivedChars);
-    RChars.remove(0, 2);
     String rid = String(RChars[0]);
     RChars.remove(0, 1);
 
-    Serial.println("                                " + String(RChars) + "°C @ NODE" + rid);
+    Serial.println(String(RChars) + "°C @ NODE" + rid);
   }
-
-  
-    
 
 
   return ReceivedChars;
 }
 
 void SyncTime(String ReceivedLastSync){
-
   ReceivedLastSync.remove(0, 2);
   String receiveID = String(ReceivedLastSync[0]);
  
@@ -118,7 +111,7 @@ void SyncTime(String ReceivedLastSync){
   time_t TimeNow = now();
   int LastSync = TimeNow%SyncFreq;
   
-  adjustTime((ReceivedLastSync.toInt()+2)-LastSync); 
+  adjustTime((ReceivedLastSync.toInt()+1)-LastSync); 
   TimeAdjusted = true;
-  Serial.println("rx TS");
+  Serial.println(F("rx TS"));
 }

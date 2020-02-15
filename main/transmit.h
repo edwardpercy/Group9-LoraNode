@@ -7,10 +7,12 @@
 #include <arduino.h>
 #include <SoftwareSerial.h>
 
+extern SoftwareSerial loraSerial;
 extern int id;
 extern bool ms_initiator;
-int Transmit_String(String input,SoftwareSerial &loraSerial);
-int Transmit_Hex(String input,SoftwareSerial &loraSerial);
-int Transmit_LastSync(SoftwareSerial &loraSerial);
+
+int Transmit_String(String input);
+int Transmit_Hex(String input);
+int Transmit_LastSync();
 
 #endif
