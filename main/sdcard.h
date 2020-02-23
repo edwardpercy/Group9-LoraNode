@@ -6,7 +6,7 @@
 
 #include <Time.h>
 #include <TimeLib.h>
-#include <SoftwareSerial.h>
+
 #include <SPI.h>
 #include <SD.h>
 

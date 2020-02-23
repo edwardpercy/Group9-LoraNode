@@ -6,12 +6,12 @@
 #include "transmit.h"
 #include "utilities.h"
 #include "receive.h"
-#include "sensors.h"
+//#include "sensors.h"
 #include "sdcard.h"
 #include <SPI.h>
 #include <SD.h>
 
-SoftwareSerial loraSerial(8,9);
+HardwareSerial loraSerial(PB7,PB6); // RX, TX
 
 bool Synced = false;
 const PROGMEM int SyncFreq = 40;
@@ -24,26 +24,25 @@ int id = 0;
 bool ms_initiator = true; 
 bool ms_finish = true;
 
-Adafruit_SHT31 sht31;
-Dps310 Dps310PressureSensor;
+//Adafruit_SHT31 sht31;
+//Dps310 Dps310PressureSensor;
  
 void setup() {
+  Serial.begin(57600);
+  loraSerial.begin(9600);
+  loraSerial.setTimeout(1000);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+  }
+
+
+
+
   int Startup_Check = 0;
  
-  pinMode(13, OUTPUT);
-  Serial.begin(57600);
-  pinMode (4, OUTPUT);
-
-  // Reset rn2483
-  pinMode(7, OUTPUT);
-  digitalWrite(7, HIGH);
-
-  loraSerial.begin(9600);
-  
-  loraSerial.setTimeout(1000);
   lora_autobaud();
 
-  loraSerial.listen();
+
   loraSerial.readStringUntil('\n');
   loraSerial.println(F("sys get ver"));
   Serial.println(loraSerial.readStringUntil('\n'));
@@ -61,20 +60,24 @@ void setup() {
   Startup_Check += wait_for_ok();
 
   //Sensors setup
-  Dps310PressureSensor = Dps310();
-  sht31 = Adafruit_SHT31();
-  Dps310PressureSensor.begin(Wire);
-  sht31.begin(0x44);
-  //logs("a");
+  //Dps310PressureSensor = Dps310();
+  //sht31 = Adafruit_SHT31();
+  //Dps310PressureSensor.begin(Wire);
+  //sht31.begin(0x44);
+  logs("a");
   //get_sensordata(sht31, Dps310PressureSensor);
-  get_sensordata();
+  //get_sensordata();
   
   if (Startup_Check > 0){
     Serial.println(F("NODE: F"));
+    delay(20000);
   }
   else{
     Serial.println(F("NODE: S"));
+    
   }
+  delay(5000);
+ 
 
 }
 
@@ -104,7 +107,8 @@ void loop() {
     }
       
     else if (Synced == true) { //Sleep - low power mode
-      Serial.println(String(now()));
+      int t = now();
+      Serial.println(String(t));
       loraSerial.println(F("sys sleep 29"));
       Serial.println(wait_for_ok());
 

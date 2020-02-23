@@ -3,9 +3,7 @@
 
 #include <string.h>
 #include <arduino.h>
-#include <SoftwareSerial.h>
-
-extern SoftwareSerial loraSerial;
+extern HardwareSerial loraSerial;
 void lora_autobaud();
 int wait_for_ok_plus_reset();
 int wait_for_ok();

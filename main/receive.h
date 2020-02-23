@@ -4,10 +4,10 @@
 #include <Time.h>
 #include <TimeLib.h>
 #include <arduino.h>
-#include <SoftwareSerial.h>
+
 #include "transmit.h"
 
-extern SoftwareSerial loraSerial;
+//extern HardwareSerial loraSerial;
 
 int Receive_String(bool Synced);
 String ProcessMessage(bool Synced,String str);

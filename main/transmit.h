@@ -5,9 +5,9 @@
 #include <TimeLib.h>
 #include <string.h>
 #include <arduino.h>
-#include <SoftwareSerial.h>
 
-extern SoftwareSerial loraSerial;
+
+extern HardwareSerial loraSerial;
 extern int id;
 extern bool ms_initiator;
 

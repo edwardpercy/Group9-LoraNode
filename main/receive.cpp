@@ -4,12 +4,11 @@ bool TimeAdjusted = false;
 
 int Receive_String(bool Synced){
   String str;
- 
-  loraSerial.println(F("radio rx 0")); //wait for 2 seconds to receive
+  loraSerial.println("radio rx 0"); //wait for 60 seconds to receive
   str = loraSerial.readStringUntil('\n');
-  
   if ( str.indexOf(F("ok")) == 0 )
   {
+   
     str = String("");
     while (str == "")
     {
@@ -40,7 +39,8 @@ int Receive_String(bool Synced){
   }
   else
   {
-    Serial.println(F("rx E"));
+    Serial.println("radio not going into receive mode");
+    delay(1000);
     return 1;
   }
 }

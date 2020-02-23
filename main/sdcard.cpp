@@ -4,8 +4,8 @@
 void logs(String info){
 
     File Diag;
-    
-    if (!SD.begin(10)) {
+    Serial.println("SD start");
+    if (!SD.begin(PA8)) {
 
       //while (1);
     }
@@ -14,13 +14,15 @@ void logs(String info){
   
     // if the file opened okay, write to it:
     if (Diag) {
-      Diag.println(String(now()) + " - " + info);
+      Serial.println("SD write");
+      int t = now();
+      Diag.println(String(t) + " - " + info);
       // close the file:
       Diag.close();
    
     } else {
       // if the file didn't open, print an error:
-
+      Serial.println("SD fail");
     }
     SD.end();
   
