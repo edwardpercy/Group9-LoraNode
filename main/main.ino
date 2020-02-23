@@ -6,10 +6,12 @@
 #include "transmit.h"
 #include "utilities.h"
 #include "receive.h"
-//#include "sensors.h"
+#include "sensors.h"
 #include "sdcard.h"
 #include <SPI.h>
 #include <SD.h>
+#include <Dps310.h>
+#include "Adafruit_SHT31.h"
 
 HardwareSerial loraSerial(PB7,PB6); // RX, TX
 
@@ -24,19 +26,22 @@ int id = 0;
 bool ms_initiator = true; 
 bool ms_finish = true;
 
-//Adafruit_SHT31 sht31;
-//Dps310 Dps310PressureSensor;
+Adafruit_SHT31 sht31;
+Dps310 Dps310PressureSensor;
  
 void setup() {
+  delay(1000);
   Serial.begin(57600);
   loraSerial.begin(9600);
   loraSerial.setTimeout(1000);
+
+  Wire.setSDA(PA10);
+  Wire.setSCL(PA9);
+  Wire.begin();
+
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-
-
-
 
   int Startup_Check = 0;
  
@@ -60,13 +65,13 @@ void setup() {
   Startup_Check += wait_for_ok();
 
   //Sensors setup
-  //Dps310PressureSensor = Dps310();
-  //sht31 = Adafruit_SHT31();
-  //Dps310PressureSensor.begin(Wire);
-  //sht31.begin(0x44);
+  Dps310PressureSensor = Dps310();
+  sht31 = Adafruit_SHT31();
+  Dps310PressureSensor.begin(Wire, 0x77);
+  sht31.begin(0x44);
   logs("a");
   //get_sensordata(sht31, Dps310PressureSensor);
-  //get_sensordata();
+  get_sensordata();
   
   if (Startup_Check > 0){
     Serial.println(F("NODE: F"));
