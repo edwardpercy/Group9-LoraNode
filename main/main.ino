@@ -138,7 +138,7 @@ void SendReceiveLoop() {
   else{
     Serial.println(F("rx E")); //Error
   }
-
+ // Transmit_String("TEst");
 //  if (random(0,2)== 0){
 //      temp = get_sensordata(sht31);
 //      if (Transmit_String("*C" + String(id) + String(temp),loraSerial) == 0) Serial.println("tx S");
