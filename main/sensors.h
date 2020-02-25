@@ -10,6 +10,6 @@ extern Dps310 Dps310PressureSensor;
 extern Adafruit_SHT31 sht31;
 
 
-float get_sensordata();
+float *get_sensordata();
 
 #endif

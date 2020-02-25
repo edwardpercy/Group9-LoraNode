@@ -9,15 +9,17 @@
 //  Serial.println(h);
 //  return t;
 //}
-float get_sensordata(){
+float *get_sensordata(){
   float pressure;
-  int t = sht31.readTemperature();
-  int h = sht31.readHumidity();
-
+  float t = sht31.readTemperature();
+  float h = sht31.readHumidity();
+  float *data = new float[3];
+  
   Dps310PressureSensor.measurePressureOnce(pressure);
- 
-  Serial.println("Pressure: " + String(pressure));
-  Serial.println("Temp: " + String(t));
-  Serial.println("Humidity: " + String(h));
-  return pressure;
+
+  data[0] = pressure;
+  data[1] = t;
+  data[2] = h;
+  
+  return data;
 }

@@ -30,56 +30,58 @@ Adafruit_SHT31 sht31;
 Dps310 Dps310PressureSensor;
  
 void setup() {
-  delay(1000);
-  Serial.begin(57600);
-  loraSerial.begin(9600);
-  loraSerial.setTimeout(1000);
+  Serial.println(F("NODE: Initiating"));
+  delay(3000);
 
-  Wire.setSDA(PA10);
-  Wire.setSCL(PA9);
-  Wire.begin();
+  //Setup Serial Connections
+  Serial.begin(57600); //USB
+  loraSerial.begin(9600); //LoRa
+  loraSerial.setTimeout(1000);
 
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-
-  int Startup_Check = 0;
- 
-  lora_autobaud();
-
-
-  loraSerial.readStringUntil('\n');
-  loraSerial.println(F("sys get ver"));
-  Serial.println(loraSerial.readStringUntil('\n'));
-  loraSerial.println(F("mac pause"));
-  Serial.println(loraSerial.readStringUntil('\n'));
-
-  Serial.println(F("NODE: Starting"));
-  loraSerial.println(F("radio set mod lora"));
-  Startup_Check += wait_for_ok();
-  loraSerial.println(F("radio set freq 869100000"));
-  Startup_Check += wait_for_ok();
-  loraSerial.println(F("radio set wdt 2000")); //disable for continuous reception (Currently: 2s)
-  Startup_Check += wait_for_ok();
-  loraSerial.println(F("radio set sync 18"));
-  Startup_Check += wait_for_ok();
-
-  //Sensors setup
+  
+  //Setup Pressure/Humidity/Temp Sensors (I2C Connection)
+  Wire.setSDA(PA10); //I2C Wire Setup
+  Wire.setSCL(PA9);
+  Wire.begin();
   Dps310PressureSensor = Dps310();
   sht31 = Adafruit_SHT31();
   Dps310PressureSensor.begin(Wire, 0x77);
   sht31.begin(0x44);
-  logs("a");
-  //get_sensordata(sht31, Dps310PressureSensor);
-  get_sensordata();
+ 
+  //Setup LoRa RN2483 (Serial Connection)
+  lora_autobaud();
+  loraSerial.readStringUntil('\n');
+  loraSerial.println(F("sys get ver"));
+  Serial.println(loraSerial.readStringUntil('\n'));
+  loraSerial.println(F("mac pause")); //To allow Transceiving using LoRa protocol the mac must be paused
+  Serial.println(loraSerial.readStringUntil('\n'));
+  
+  //Set RN2483 Parameters
+  int Startup_Check = 0;
+  loraSerial.println(F("radio set mod lora")); //Set the RN2483 to use LoRa modulation
+  Startup_Check += wait_for_ok();
+  loraSerial.println(F("radio set freq 869100000")); //869MHz Frequency
+  Startup_Check += wait_for_ok();
+  loraSerial.println(F("radio set wdt 2000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
+  Startup_Check += wait_for_ok();
+  loraSerial.println(F("radio set sync 18")); //Sync word used to that other people's LoRa modules don't interfere
+  Startup_Check += wait_for_ok();
+
+  //SD-Card Check
+  Startup_Check += SDCheck();
   
   if (Startup_Check > 0){
-    Serial.println(F("NODE: F"));
-    delay(20000);
+    Serial.println(F("NODE: Startup Failed"));
+    logs("Startup Fail");
+    while(1){
+    }
   }
   else{
-    Serial.println(F("NODE: S"));
-    
+    Serial.println(F("NODE: Startup Success"));
+    logs("Startup Success");
   }
   delay(5000);
  
@@ -87,6 +89,13 @@ void setup() {
 }
 
 void loop() {
+
+    //Read and save sensor data to sd-card *TESTING*
+    float *data = get_sensordata();
+    Serial.println("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
+    logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
+
+    //Time Keeping
     time_t TimeNow = now();
     LastSync = TimeNow%MasterSyncFreq;
     Sync = TimeNow%SyncFreq;
@@ -96,6 +105,8 @@ void loop() {
   
       StartupSync(); //Ran when NODE is started to sync time with nearby nodes
     }
+
+    //WIP WIP WIP - Major Sync
     else if (LastSync <= 500 && ms_finish == false){ //Runs for a maximum of 500s or until the sync is complete (Master sync)
       
       SendReceiveLoop();
@@ -104,7 +115,7 @@ void loop() {
      
       ms_finish = false;
     }
-    
+    //WIP WIP WIP
     
     else if (Sync <= 10){ //Minor Sync
       Serial.println("ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
