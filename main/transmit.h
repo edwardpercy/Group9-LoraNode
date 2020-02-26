@@ -10,6 +10,7 @@
 extern HardwareSerial loraSerial;
 extern int id;
 extern bool ms_initiator;
+extern const PROGMEM int MasterSyncFreq;
 
 int Transmit_String(String input);
 int Transmit_Hex(String input);

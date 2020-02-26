@@ -16,6 +16,7 @@
 HardwareSerial loraSerial(PB7,PB6); // RX, TX
 
 bool Synced = false;
+bool ms_initiator = true;
 
 const PROGMEM int MasterSyncFreq = 1440;
 const PROGMEM int TimeSyncFreq = 240;
@@ -26,7 +27,7 @@ const PROGMEM int MasterSyncPeriod = 100;
 const PROGMEM int TimeSyncPeriod = 10;
 const PROGMEM int ListenPeriod = 4;
 
-const PROGMEM int SyncRetries = 14;
+const PROGMEM int SyncRetries = 11;
 
 int SyncAttempt = 0;
 int id = 0;
@@ -98,30 +99,32 @@ void loop() {
 
     //Time Keeping
     time_t TimeNow = now();
+    int Time = TimeNow;
 
     //Startup Sync - Ran on startup to sync time with nearby nodes
     if (Synced == false) {
-      Serial.println("Startup Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
+      Serial.println("Startup Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
       StartupSync(); //Ran when NODE is started to sync time with nearby nodes
     }
 
 
     //Master Sync - Sync with the master node 
-    else if (TimeNow%MasterSyncFreq <= MasterSyncPeriod){ //Run for 100s every 1440s
-      Serial.println("Master Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
-      
+    else if (TimeNow%MasterSyncFreq <= MasterSyncPeriod && TimeNow >MasterSyncPeriod){ //Run for 100s every 1440s
+      Serial.println("Master Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
+      ReceiveLoop();
     }
 
 
     //Time Sync - Sync time with master node
-    else if (TimeNow%TimeSyncFreq <= TimeSyncPeriod){ //Run for 10s every 240s
-      Serial.println("Time Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
+    else if (TimeNow%TimeSyncFreq <= TimeSyncPeriod && TimeNow > TimeSyncPeriod){ //Run for 10s every 240s
+      Serial.println("Time Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
+      Transmit_Hex(F("3C3C"));
     }
 
 
     //Local Sync - Take sensor readings and send them to nearby nodes
     else if (TimeNow%LocalSyncFreq <= 4){ 
-      Serial.println("Local Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
+      Serial.println("Local Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
 
       //Read and save sensor data to sd-card *TESTING*
       float *data = get_sensordata();
@@ -129,7 +132,7 @@ void loop() {
       logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
 
       if (random(0,2)== 0){
-          if (Transmit_String("*C" + String(id) + String(data[1]),loraSerial) == 0) Serial.println("tx S");
+          if (Transmit_String("*C" + String(id) + String(data[1])) == 0) Serial.println("tx S");
           else Serial.println(F("tx E"));
       }
       else{
@@ -142,7 +145,7 @@ void loop() {
 
     //Listen Period - Listen for incoming messages
     else if (TimeNow%ListenFreq <= ListenPeriod){ 
-      Serial.println("Listening - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
+      Serial.println("Listening - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
       ReceiveLoop();
     }
 

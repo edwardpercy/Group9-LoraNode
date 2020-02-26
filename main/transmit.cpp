@@ -21,9 +21,9 @@ int Transmit_String(String input) //MAX 50 char length
 
 int Transmit_LastSync() //MAX 50 char length
 {
-    int SyncFreq = 1000;
+ 
     time_t TimeNow = now();
-    int LastSync = TimeNow%SyncFreq;
+    int LastSync = TimeNow%MasterSyncFreq;
     
     String input = String(LastSync);
     input = String(id) + input;
