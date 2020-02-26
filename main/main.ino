@@ -16,15 +16,21 @@
 HardwareSerial loraSerial(PB7,PB6); // RX, TX
 
 bool Synced = false;
-const PROGMEM int SyncFreq = 40;
-const PROGMEM int MasterSyncFreq = 1000;
+
+const PROGMEM int MasterSyncFreq = 1440;
+const PROGMEM int TimeSyncFreq = 240;
+const PROGMEM int LocalSyncFreq = 120;
+const PROGMEM int ListenFreq = 20;
+
+const PROGMEM int MasterSyncPeriod = 100;
+const PROGMEM int TimeSyncPeriod = 10;
+const PROGMEM int ListenPeriod = 4;
+
 const PROGMEM int SyncRetries = 14;
-int LastSync = 0;
-int Sync = 0;
+
 int SyncAttempt = 0;
 int id = 0;
-bool ms_initiator = true; 
-bool ms_finish = true;
+
 
 Adafruit_SHT31 sht31;
 Dps310 Dps310PressureSensor;
@@ -90,52 +96,78 @@ void setup() {
 
 void loop() {
 
-    //Read and save sensor data to sd-card *TESTING*
-    float *data = get_sensordata();
-    Serial.println("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
-    logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
+const PROGMEM int MasterSyncFreq = 1440;
+const PROGMEM int TimeSyncFreq = 240;
+const PROGMEM int LocalSyncFreq = 120;
+const PROGMEM int ListenFreq = 20;    
 
+const PROGMEM int MasterSyncPeriod = 100;
+const PROGMEM int TimeSyncPeriod = 10;
+const PROGMEM int ListenPeriod = 4;
     //Time Keeping
     time_t TimeNow = now();
-    LastSync = TimeNow%MasterSyncFreq;
-    Sync = TimeNow%SyncFreq;
-    Serial.println(LastSync);
-    
+
+    //Startup Sync - Ran on startup to sync time with nearby nodes
     if (Synced == false) {
-  
+      Serial.println("Startup Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
       StartupSync(); //Ran when NODE is started to sync time with nearby nodes
     }
 
-    //WIP WIP WIP - Major Sync
-    else if (LastSync <= 500 && ms_finish == false){ //Runs for a maximum of 500s or until the sync is complete (Master sync)
+
+    //Master Sync - Sync with the master node 
+    else if (TimeNow%MasterSyncFreq <= MasterSyncPeriod){ //Run for 100s every 1440s
+      Serial.println("Master Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
       
-      SendReceiveLoop();
     }
-    else if (LastSync <= 5){ //Indicates the start of the master sync
-     
-      ms_finish = false;
+
+
+    //Time Sync - Sync time with master node
+    else if (TimeNow%TimeSyncFreq <= TimeSyncPeriod){ //Run for 10s every 240s
+      Serial.println("Time Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
     }
-    //WIP WIP WIP
-    
-    else if (Sync <= 10){ //Minor Sync
-      Serial.println("ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
-      SendReceiveLoop();
+
+
+    //Local Sync - Take sensor readings and send them to nearby nodes
+    else if (TimeNow%LocalSyncFreq <= 4){ 
+      Serial.println("Local Sync - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
+
+      //Read and save sensor data to sd-card *TESTING*
+      float *data = get_sensordata();
+      Serial.println("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
+      logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
+
+      if (random(0,2)== 0){
+          if (Transmit_String("*C" + String(id) + String(data[1]),loraSerial) == 0) Serial.println("tx S");
+          else Serial.println(F("tx E"));
+      }
+      else{
+        ReceiveLoop();
+      }
+
+
     }
-      
-    else if (Synced == true) { //Sleep - low power mode
-      int t = now();
-      Serial.println(String(t));
-      loraSerial.println(F("sys sleep 29"));
+
+
+    //Listen Period - Listen for incoming messages
+    else if (TimeNow%ListenFreq <= ListenPeriod){ 
+      Serial.println("Listening - ID: " + String(id) + " TIME:" + String(LastSync) + " Init: " + String(ms_initiator));
+      ReceiveLoop();
+    }
+
+
+    //Sleep - low power mode
+    else if (Synced == true) {
+      loraSerial.println(F("sys sleep 15")); //Put LoRa to sleep
       Serial.println(wait_for_ok());
 
       Serial.println(F("SLEEP"));
-      delay(30150); //Ran once every 2 seconds (Radio listening time)
+      delay(16050); 
     }
     else delay(1000);
 
 }
 
-void SendReceiveLoop() {
+void ReceiveLoop() {
   int out;
   if ((out = Receive_String(Synced)) == 0){
     Serial.println(F("rx L")); //Listening
@@ -149,17 +181,18 @@ void SendReceiveLoop() {
   else{
     Serial.println(F("rx E")); //Error
   }
+  
  // Transmit_String("TEst");
 //  if (random(0,2)== 0){
 //      temp = get_sensordata(sht31);
 //      if (Transmit_String("*C" + String(id) + String(temp),loraSerial) == 0) Serial.println("tx S");
 //      else Serial.println(F("tx E"));
 //  }
+
 }
 
 void StartupSync() {
   int out;
-  Serial.println(F("NODE: SA"));
   Transmit_Hex(F("3C3C"));
   
   if ((out = Receive_String(Synced)) == 0);
