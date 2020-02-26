@@ -96,14 +96,6 @@ void setup() {
 
 void loop() {
 
-const PROGMEM int MasterSyncFreq = 1440;
-const PROGMEM int TimeSyncFreq = 240;
-const PROGMEM int LocalSyncFreq = 120;
-const PROGMEM int ListenFreq = 20;    
-
-const PROGMEM int MasterSyncPeriod = 100;
-const PROGMEM int TimeSyncPeriod = 10;
-const PROGMEM int ListenPeriod = 4;
     //Time Keeping
     time_t TimeNow = now();
 
