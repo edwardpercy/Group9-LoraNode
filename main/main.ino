@@ -57,7 +57,18 @@ void setup() {
   sht31 = Adafruit_SHT31();
   Dps310PressureSensor.begin(Wire, 0x77);
   sht31.begin(0x44);
- 
+
+
+  //reset rn2483
+  pinMode(PA11, OUTPUT);
+  digitalWrite(PA11, LOW);
+  delay(500);
+  digitalWrite(PA11, HIGH);
+
+  delay(100); //wait for the RN2xx3's startup message
+  loraSerial.flush();
+
+  
   //Setup LoRa RN2483 (Serial Connection)
   lora_autobaud();
   loraSerial.readStringUntil('\n');
@@ -83,8 +94,7 @@ void setup() {
   if (Startup_Check > 0){
     Serial.println(F("NODE: Startup Failed"));
     logs("Startup Fail");
-    while(1){
-    }
+    
   }
   else{
     Serial.println(F("NODE: Startup Success"));
