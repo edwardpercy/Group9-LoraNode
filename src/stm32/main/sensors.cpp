@@ -1,14 +1,5 @@
 #include "sensors.h"
 
-//float get_sensordata(){
-//
-//  float t = sht31.readTemperature();
-//  float h = sht31.readHumidity();
-//
-//  Serial.println(t);
-//  Serial.println(h);
-//  return t;
-//}
 float *get_sensordata(){
   float pressure;
   float t = sht31.readTemperature();

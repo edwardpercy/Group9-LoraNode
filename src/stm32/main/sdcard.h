@@ -7,6 +7,7 @@
 #include <TimeLib.h>
 #include <SPI.h>
 #include <SD.h>
+#include "serial.h"
 
 void logs(String info);
 int SDCheck();

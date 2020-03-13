@@ -21,7 +21,10 @@ int Receive_String(bool Synced){
         TimeAdjusted = false;
         return 4;
       }
-      else if (str.indexOf(F("004000")) == 0) return 3;
+      else if (str.indexOf(F("004000")) == 0) {
+        confirmation = true;
+        return 3;
+      }
       else{
         if (str.indexOf(F("3C3C")) != 0 && Synced == true) Transmit_Hex(F("004000"));
         ProcessMessage(Synced,str);
@@ -39,7 +42,7 @@ int Receive_String(bool Synced){
   }
   else
   {
-    Serial.println("radio not going into receive mode");
+    debug("radio not going into receive mode");
     delay(1000);
     return 1;
   }
@@ -89,7 +92,7 @@ String ProcessMessage(bool Synced,String str) {
     String rid = String(RChars[0]);
     RChars.remove(0, 1);
 
-    Serial.println(String(RChars) + "°C @ NODE" + rid);
+    debug("Readings: " + String(RChars) + " @ NODE" + rid);
   }
 
 
@@ -97,6 +100,8 @@ String ProcessMessage(bool Synced,String str) {
 }
 
 void SyncTime(String ReceivedLastSync){
+
+  //Retrieve the sync time
   ReceivedLastSync.remove(0, 2);
   String receiveID = String(ReceivedLastSync[0]);
  
@@ -106,12 +111,17 @@ void SyncTime(String ReceivedLastSync){
   if (rid > 9) id = 0;
   else id = rid;
 
+  //Retrieve the TurnID
   ReceivedLastSync.remove(0, 1);
+  String TurnID = String(ReceivedLastSync[0]);
+  currentTurnID = TurnID.toInt();
+ 
+  //Set the Sync Time
   int SyncFreq = 1000;
   time_t TimeNow = now();
   int LastSync = TimeNow%SyncFreq;
   
   adjustTime((ReceivedLastSync.toInt()+1)-LastSync); 
   TimeAdjusted = true;
-  Serial.println(F("rx TS"));
+  debug("Time Sync Success");
 }

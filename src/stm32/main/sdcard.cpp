@@ -1,21 +1,19 @@
 #include "sdcard.h"
 
-
-
 int SDCheck(){
 
   SdVolume volume;
   Sd2Card card;
   if (!card.init(SPI_HALF_SPEED, PA8)) {
-    Serial.println("SD: Connection Error");
+    debug("SD: Connection Error");
     return 1;
   } 
   else if (!volume.init(card)) {
-    Serial.println("SD: Format Error");
+    debug("SD: Format Error");
     return 2;
   }
   else {
-    Serial.println("SD: Success");
+    debug("SD: Success");
     return 0;
   }  
   
@@ -42,8 +40,31 @@ void logs(String info){
    
     } else {
       // if the file didn't open, print an error:
-      Serial.println("SD fail");
+      debug("SD fail");
     }
-    SD.end();
+    SD.end(); 
+}
+
+int readSD(){
+  File Diag;
+
+  if (!SD.begin(PA8)) {
+
+      //while (1);
+  }
+    
+  Diag = SD.open("data.txt");
+  if (Diag) {
+    while (Diag.available()) {
+      gui_send("DATA" + Diag.read());
+    }
+    // close the file:
+    Diag.close();
+    return 0;
+  } else {
+    // if the file didn't open, print an error:
+    return 1;
+  }
+  return 1;
   
 }

@@ -26,7 +26,7 @@ int Transmit_LastSync() //MAX 50 char length
     int LastSync = TimeNow%MasterSyncFreq;
     
     String input = String(LastSync);
-    input = String(id) + input;
+    input = String(id) + String(currentTurnID) + input;
     String str;
     int str_len = input.length() + 1;
     char char_array[str_len];
@@ -56,6 +56,9 @@ int Transmit_Hex(String input) //MAX 50 Hex
     char TData[(str_len*2)];
     sprintf(TData, "radio tx %s", char_array);
     loraSerial.println(TData);
+
+    LastTransmitMsg = TData;
+    confirmation = false;
 
     return wait_for_ok_plus_reset();
 }
