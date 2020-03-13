@@ -134,7 +134,7 @@ void loop() {
         float *data = get_sensordata();
         debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
         logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
-        if (Transmit_String("*C" + String(id) + String(data[0]) + " " + String(data[1]) + " " String(data[2])) == 0) Serial.println("tx Success");
+        if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " String(data[2])) == 0) Serial.println("tx Success");
         else debug("tx Error");
       }
       

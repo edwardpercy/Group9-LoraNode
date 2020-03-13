@@ -119,7 +119,7 @@ String ProcessMessage(bool Synced,String str) {
   
   if ( str.indexOf(F("3C3C")) == 0 && Synced == true) Transmit_LastSync(); //Send Sync Data
   if ( str.indexOf(F("3E3E")) == 0 ) SyncTime(ReceivedChars); //Sync with received sync data
-  if ( str.indexOf(F("2A43")) == 0 ){ //Received temperature data
+  if ( str.indexOf(F("442A")) == 0 ){ //Received temperature data
 
     String RChars = String(ReceivedChars);
     String rid = String(RChars[0]);
