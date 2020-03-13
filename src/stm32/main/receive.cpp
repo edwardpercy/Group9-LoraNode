@@ -48,6 +48,39 @@ int Receive_String(bool Synced){
   }
 }
 
+int Wait_For_Confirm(){
+  String str;
+  loraSerial.println("radio rx 0"); //wait for 60 seconds to receive
+  str = loraSerial.readStringUntil('\n');
+  if ( str.indexOf(F("ok")) == 0 )
+  {
+   
+    str = String("");
+    while (str == "")
+    {
+      str = loraSerial.readStringUntil('\n');
+    }
+    
+    if ( str.indexOf(F("radio_rx")) == 0 )
+    {
+      str.remove(0, 10);
+      
+      if (str.indexOf(F("004000")) == 0) {
+        return 1;
+      }  
+    }
+    else{
+      return 0;
+      }
+  }
+  else
+  {
+    debug("radio not going into receive mode");
+    delay(1000);
+    return 2;
+  }
+}
+
 char h2c(char c1, char c2)
 {
   char output = 0;
@@ -93,6 +126,10 @@ String ProcessMessage(bool Synced,String str) {
     RChars.remove(0, 1);
 
     debug("Readings: " + String(RChars) + " @ NODE" + rid);
+  }
+
+  if ( str.indexOf(F("4D53")) == 0 ) {
+    //DO SOMETHING WHEN RECEIVE A MASTER SYNC REQUEST
   }
 
 

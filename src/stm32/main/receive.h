@@ -11,6 +11,7 @@ extern HardwareSerial loraSerial; //is this required?
 extern int currentTurnID;
 extern bool confirmation;
 
+int Wait_For_Confirm();
 int Receive_String(bool Synced);
 String ProcessMessage(bool Synced,String str);
 char h2c(char c1, char c2);

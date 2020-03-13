@@ -116,12 +116,8 @@ void loop() {
     gui_receive();
     gui_send("NODE", String(master_node)); //Keep-Alive
 
-    if (master_node == true){
-      
-    }
-    
     //Startup Sync - Ran on startup to sync time with nearby nodes
-    else if (Synced == false && master_node == false) {
+    if (Synced == false && master_node == false) {
       debug("Startup Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
       StartupSync(); //Ran when NODE is started to sync time with nearby nodes
     }
