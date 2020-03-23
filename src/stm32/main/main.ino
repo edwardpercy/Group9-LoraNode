@@ -22,10 +22,13 @@ bool show_debug = true;
 bool master_node = false;
 bool confirmation = true;
 
+int ResendRetries = 20;
+
 String LastTransmitMsg = "";
 
+
 const PROGMEM int ListenFreq = 20;
-const PROGMEM int ListenPeriod = 4;
+const PROGMEM int ListenPeriod = 10;
 const PROGMEM int SyncRetries = 11;
 
 int SyncAttempt = 0;
@@ -124,28 +127,38 @@ void loop() {
     if (Synced == false && master_node == false) {
       debug("Startup Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
       StartupSync(); //Ran when NODE is started to sync time with nearby nodes
+      confirmation = true;
     }
 
-
+    
     //Listen Period - Listen for incoming messages + Read/Send sensor data when its the nodes turn
     else if (TimeNow%ListenFreq <= ListenPeriod && master_node == false){ 
-      if (confirmation == false) Transmit_Hex(LastTransmitMsg); //Re-send unconfirmed messages
-      
-      if ((id-currentTurnID)%6==0){ //Read sensors and send data
-        debug("Local Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
-  
-        //Read and save sensor data to sd-card *TESTING*
-        float *data = get_sensordata();
-        debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
-        logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
-        if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2])) == 0) Serial.println("tx Success");
-        else debug("tx Error");
+      if (confirmation == false && ResendRetries >= 0) {
+        Serial.println("Re-sending unconfirmed messages");
+        Transmit_Hex(LastTransmitMsg); //Re-send unconfirmed messages
+        delay(500);
+        ResendRetries -= 1;
+      }
+      else{
+        ResendRetries = 20;
+        confirmation = true;
+        if ((id-currentTurnID)%6==0){ //Read sensors and send data
+          debug("Local Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
+    
+          //Read and save sensor data to sd-card *TESTING*
+          float *data = get_sensordata();
+          debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
+          logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
+          if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2])) == 0) Serial.println("tx Success");
+          else debug("tx Error");
+        }
+        
+        else{ //Listen for incoming data
+          debug("Listening - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator)); 
+        } 
+        ReceiveLoop();
       }
       
-      else{ //Listen for incoming data
-        debug("Listening - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator)); 
-      } 
-      ReceiveLoop();
     }
 
     //Sleep - low power mode
@@ -155,11 +168,11 @@ void loop() {
       if (currentTurnID > 6) currentTurnID = 0;
       else currentTurnID += 1;
       
-      loraSerial.println(F("sys sleep 15")); //Put LoRa to sleep
+      loraSerial.println(F("sys sleep 9")); //Put LoRa to sleep
       wait_for_ok();
 
       debug("SLEEP");
-      delay(16050); 
+      delay(10150); 
     }
     
     else delay(1000);
