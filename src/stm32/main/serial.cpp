@@ -1,5 +1,7 @@
 #include "serial.h"
 
+void(* resetFunc) (void) = 0;
+
 void debug(String message){
   if (show_debug == true) Serial.println("DEBUG - " + message);
 }
@@ -8,6 +10,7 @@ int gui_receive(){ //Receive commands from the PC gui
   if (Serial.available() > 0) {
       // read the incoming byte:
       String str = Serial.readStringUntil('\n');
+
       
       if (str == "RDATA"){ //Send SD-Card data to GUI
         gui_send("DATA", String(readSD()));
@@ -19,7 +22,7 @@ int gui_receive(){ //Receive commands from the PC gui
         int Timeout = 0;
         while (Wait_For_Confirm() != 1 && Timeout < 5){
           gui_send("SYNC", "Sending, Attempt: " + String(Timeout));
-          Wait_For_Confirm("4D53");
+          Wait_For_Confirm();
           Timeout += 1;
         }
         if (Timeout >= 5) gui_send("SYNC", "Timeout Reached");
@@ -34,8 +37,27 @@ int gui_receive(){ //Receive commands from the PC gui
         return 4;     
       }
       if (str == "RTIME"){ //Request time -> GUI
-        gui_send("TIME", String(now()));
+        int t = now();
+        gui_send("TIME", String(t));
         return 5;     
+      }
+
+      if (str == "RESET"){
+        Serial.println("Restarting");
+
+        return 6;
+      }
+
+      if (str == "SLAVE"){
+        master_node = false;
+        Serial.println("Mode: Slave");
+        return 7;
+      }
+      
+      if (str == "MASTR"){
+        master_node = true;
+        Serial.println("Mode: Master");
+        return 8;
       }
       
       return 1;

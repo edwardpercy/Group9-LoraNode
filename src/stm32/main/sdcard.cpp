@@ -56,7 +56,7 @@ int readSD(){
   Diag = SD.open("data.txt");
   if (Diag) {
     while (Diag.available()) {
-      gui_send("DATA" + Diag.read());
+      gui_send("DATA" , String(Diag.read()));
     }
     // close the file:
     Diag.close();

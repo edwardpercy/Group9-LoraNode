@@ -11,5 +11,5 @@
 
 void logs(String info);
 int SDCheck();
-
+int readSD();
 #endif

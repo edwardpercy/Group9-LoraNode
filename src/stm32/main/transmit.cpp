@@ -23,7 +23,7 @@ int Transmit_LastSync() //MAX 50 char length
 {
  
     time_t TimeNow = now();
-    int LastSync = TimeNow%MasterSyncFreq;
+    int LastSync = TimeNow;
     
     String input = String(LastSync);
     input = String(id) + String(currentTurnID) + input;

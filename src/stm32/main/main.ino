@@ -19,7 +19,7 @@ HardwareSerial loraSerial(PB7,PB6); // RX, TX
 bool Synced = false;
 bool ms_initiator = true;
 bool show_debug = true;
-bool master_node = true;
+bool master_node = false;
 bool confirmation = true;
 
 String LastTransmitMsg = "";
@@ -34,7 +34,8 @@ int currentTurnID = 0;
 
 Adafruit_SHT31 sht31;
 Dps310 Dps310PressureSensor;
- 
+
+
 void setup() {
   debug("NODE: Initiating");
   delay(3000);
@@ -88,7 +89,8 @@ void setup() {
   Startup_Check += wait_for_ok();
 
   //SD-Card Check
-  Startup_Check += SDCheck();
+  //Startup_Check += SDCheck();
+  SDCheck();
   
   if (Startup_Check > 0){
     debug("NODE: Startup Failed");
@@ -100,6 +102,8 @@ void setup() {
   else{
     debug("NODE: Startup Success");
     logs("Startup Success");
+    float *data = get_sensordata();
+    debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
   }
   delay(5000);
  
@@ -113,7 +117,7 @@ void loop() {
     int Time = TimeNow;
 
     //Check commands from PC gui
-    gui_receive();
+    if (gui_receive() == 6) setup();
     gui_send("NODE", String(master_node)); //Keep-Alive
 
     //Startup Sync - Ran on startup to sync time with nearby nodes
@@ -125,7 +129,7 @@ void loop() {
 
     //Listen Period - Listen for incoming messages + Read/Send sensor data when its the nodes turn
     else if (TimeNow%ListenFreq <= ListenPeriod && master_node == false){ 
-      if (confirmed == false) Transmit_Hex(LastTransmitMsg); //Re-send unconfirmed messages
+      if (confirmation == false) Transmit_Hex(LastTransmitMsg); //Re-send unconfirmed messages
       
       if ((id-currentTurnID)%6==0){ //Read sensors and send data
         debug("Local Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
@@ -134,7 +138,7 @@ void loop() {
         float *data = get_sensordata();
         debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
         logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
-        if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " String(data[2])) == 0) Serial.println("tx Success");
+        if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2])) == 0) Serial.println("tx Success");
         else debug("tx Error");
       }
       
