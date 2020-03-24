@@ -43,7 +43,7 @@ int Receive_String(bool Synced){
   else
   {
     debug("radio not going into receive mode");
-    delay(1000);
+    delay(2100);
     return 1;
   }
 }
@@ -76,7 +76,7 @@ int Wait_For_Confirm(){
   else
   {
     debug("radio not going into receive mode");
-    delay(1000);
+    delay(2100);
     return 2;
   }
 }

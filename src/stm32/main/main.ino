@@ -22,7 +22,7 @@ bool show_debug = true;
 bool master_node = false;
 bool confirmation = true;
 
-int ResendRetries = 20;
+int ResendRetries = 5;
 
 String LastTransmitMsg = "";
 
@@ -136,11 +136,11 @@ void loop() {
       if (confirmation == false && ResendRetries >= 0) {
         Serial.println("Re-sending unconfirmed messages");
         Transmit_Hex(LastTransmitMsg); //Re-send unconfirmed messages
-        delay(500);
+   
         ResendRetries -= 1;
       }
       else{
-        ResendRetries = 20;
+        ResendRetries = 5;
         confirmation = true;
         if ((id-currentTurnID)%6==0){ //Read sensors and send data
           debug("Local Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
@@ -151,13 +151,15 @@ void loop() {
           logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
           if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2])) == 0) Serial.println("tx Success");
           else debug("tx Error");
+         
         }
         
         else{ //Listen for incoming data
           debug("Listening - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator)); 
         } 
-        ReceiveLoop();
+        
       }
+      ReceiveLoop();
       
     }
 
