@@ -19,9 +19,9 @@ HardwareSerial loraSerial(PB7,PB6); // RX, TX
 bool Synced = false;
 bool ms_initiator = true;
 bool show_debug = true;
-bool master_node = true;
+bool master_node = false;
 bool confirmation = true;
-
+bool sync_active = false;
 int ResendRetries = 1;
 
 String LastTransmitMsg = "";
@@ -29,7 +29,7 @@ String LastTransmitMsg = "";
 
 const PROGMEM int ListenFreq = 20;
 const PROGMEM int ListenPeriod = 10;
-const PROGMEM int SyncRetries = 11;
+const PROGMEM int SyncRetries = 30;
 
 int SyncAttempt = 0;
 int id = 0;
@@ -132,7 +132,14 @@ void loop() {
     if (gui_receive() == 6) setup();
     gui_send("NODE", String(Time)); //Keep-Alive GUI
 
-    if (master_node == true) MasterReceiver();
+    if (master_node == true) {
+      if (now()%ListenFreq == 0){
+        if (currentTurnID > 6) currentTurnID = 0;
+        else currentTurnID += 1;
+      }
+      
+      MasterReceiver();
+    }
 
     //Startup Sync - Ran on startup to sync time with nearby nodes
     else if (Synced == false && master_node == false) {
@@ -228,9 +235,8 @@ void StartupSync() {
   
   SyncAttempt += 1;
   if (SyncAttempt > SyncRetries) {
-    Serial.println(F("Unable to sync")); //Error
-    currentTurnID += 1;
-    Synced = true;
+    while(true) Serial.println(F("Unable to sync")); //Error
+    
     
   }
 }

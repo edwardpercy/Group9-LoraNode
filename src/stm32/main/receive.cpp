@@ -22,7 +22,8 @@ int MasterReceiver(){
       
       str.remove(0, 10);
       if ( str.indexOf(F("3C3C")) == 0) {
-        Transmit_LastSync(); //Send Sync Data        
+        Transmit_LastSync(); //Send Sync Data     
+        id += 1; 
       }
        
     }
@@ -185,7 +186,8 @@ String ProcessMessage(bool Synced,String str) {
   if ( str.indexOf(F("4D53")) == 0 ) {
     Transmit_Hex(F("004000"));
     confirmation = true;
-    //DO SOMETHING WHEN RECEIVE A MASTER SYNC REQUEST
+    sync_active = true;
+    master_sync();
   }
 
 

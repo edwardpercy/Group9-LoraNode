@@ -6,11 +6,14 @@
 #include <arduino.h>
 #include "serial.h"
 #include "transmit.h"
+#include "sync.h"
 
 extern HardwareSerial loraSerial; //is this required?
 extern int currentTurnID;
 extern bool confirmation;
 extern bool master_node;
+extern bool sync_active;
+extern int id;
 
 int MasterReceiver();
 int Wait_For_Confirm();
