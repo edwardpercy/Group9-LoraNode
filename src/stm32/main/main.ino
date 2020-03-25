@@ -24,6 +24,7 @@ bool confirmation = true;
 bool sync_active = false;
 int ResendRetries = 1;
 
+String LatestReading;
 String LastTransmitMsg = "";
 
 
@@ -114,6 +115,7 @@ void setup() {
     debug("NODE: Startup Success");
     logs("Startup Success");
     float *data = get_sensordata();
+    LatestReading = ("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2]));
     debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
   }
 
@@ -180,6 +182,7 @@ void loop() {
           debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
           logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
           delay(100);
+          LatestReading = ("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2]));
           if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2])) == 0) {
             Serial.println("tx Success");
             confirmation = false;
