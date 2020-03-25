@@ -19,14 +19,27 @@ int wait_for_ok_plus_reset()
 
   String str;
   str = loraSerial.readStringUntil('\n');
-  
   if ( str.indexOf(F("ok")) == 0 ) {
-    str = loraSerial.readStringUntil('\n');
-    return 0;
+
+    str = String("");
+    while (str == "")
+    {
+      str = loraSerial.readStringUntil('\n');
+    }
+   
+    if ( str.indexOf(F("radio_tx_ok")) == 0 ) {
+      
+      return 0;
+    }
+    else if ( str.indexOf(F("radio_err")) == 0 ) {
+      return 1;
+    }
+    else{
+      return 1;
+    }
   }
   
   else{
-    str = loraSerial.readStringUntil('\n');
     return 1;
   }
 }
@@ -38,10 +51,12 @@ int wait_for_ok()
   str = loraSerial.readStringUntil('\n');
    
   if ( str.indexOf(F("ok")) == 0 ) {
+
     return 0;
   }
   
   else{
+
     return 1;
   }
 }

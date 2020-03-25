@@ -2,10 +2,11 @@
 
 bool TimeAdjusted = false;
 
-int Receive_String(bool Synced){
+int MasterReceiver(){
   String str;
   loraSerial.println("radio rx 0"); //wait for 60 seconds to receive
   str = loraSerial.readStringUntil('\n');
+ 
   if ( str.indexOf(F("ok")) == 0 )
   {
    
@@ -14,6 +15,46 @@ int Receive_String(bool Synced){
     {
       str = loraSerial.readStringUntil('\n');
     }
+
+
+    if ( str.indexOf(F("radio_rx")) == 0 )
+    {
+      
+      str.remove(0, 10);
+      if ( str.indexOf(F("3C3C")) == 0) {
+        Transmit_LastSync(); //Send Sync Data        
+      }
+       
+    }
+    else{
+      return 0;
+      }
+  }
+  else
+  {
+    Serial.println(str);
+    debug("radio not going into receive mode");
+    delay(4000);
+    return 2;
+  }
+  
+}
+  
+int Receive_String(bool Synced){
+  
+  String str;
+  loraSerial.println("radio rx 0"); //wait for 60 seconds to receive
+  str = loraSerial.readStringUntil('\n');
+ 
+  if ( str.indexOf(F("ok")) == 0 )
+  {
+   
+    str = String("");
+    while (str == "")
+    {
+      str = loraSerial.readStringUntil('\n');
+    }
+
     if ( str.indexOf(F("radio_rx")) == 0 )
     {
       str.remove(0, 10);
@@ -26,7 +67,7 @@ int Receive_String(bool Synced){
         return 3;
       }
       else{
-        if (str.indexOf(F("3C3C")) != 0 && Synced == true) Transmit_Hex(F("004000"));
+     
         ProcessMessage(Synced,str);
         if (TimeAdjusted == true){
           TimeAdjusted = false;
@@ -37,13 +78,14 @@ int Receive_String(bool Synced){
     }
     else
     {
+     
       return 0;
     }
   }
   else
   {
     debug("radio not going into receive mode");
-    delay(2100);
+    delay(4000);
     return 1;
   }
 }
@@ -60,12 +102,15 @@ int Wait_For_Confirm(){
     {
       str = loraSerial.readStringUntil('\n');
     }
-    
+
+
     if ( str.indexOf(F("radio_rx")) == 0 )
     {
+
       str.remove(0, 10);
       
       if (str.indexOf(F("004000")) == 0) {
+        
         return 1;
       }  
     }
@@ -76,7 +121,7 @@ int Wait_For_Confirm(){
   else
   {
     debug("radio not going into receive mode");
-    delay(2100);
+    delay(4000);
     return 2;
   }
 }
@@ -97,7 +142,7 @@ char h2c(char c1, char c2)
 
 String ProcessMessage(bool Synced,String str) {
   
-  Serial.println(str);
+  
   int str_len = str.length() + 1;
   char char_array[str_len];
   str.toCharArray(char_array, str_len);
@@ -117,10 +162,19 @@ String ProcessMessage(bool Synced,String str) {
   }
 
   
-  if ( str.indexOf(F("3C3C")) == 0 && Synced == true) Transmit_LastSync(); //Send Sync Data
-  if ( str.indexOf(F("3E3E")) == 0 ) SyncTime(ReceivedChars); //Sync with received sync data
+  if ( str.indexOf(F("3C3C")) == 0 && Synced == true) {
+    Transmit_LastSync(); //Send Sync Data
+    confirmation = true;
+  }
+  if ( str.indexOf(F("3E3E")) == 0 ) {
+    Transmit_Hex(F("004000"));
+    confirmation = true;
+    SyncTime(ReceivedChars); //Sync with received sync data
+  }
   if ( str.indexOf(F("442A")) == 0 ){ //Received temperature data
-
+    Transmit_Hex(F("004000"));
+    confirmation = true;
+    
     String RChars = String(ReceivedChars);
     String rid = String(RChars[0]);
     RChars.remove(0, 1);
@@ -129,6 +183,8 @@ String ProcessMessage(bool Synced,String str) {
   }
 
   if ( str.indexOf(F("4D53")) == 0 ) {
+    Transmit_Hex(F("004000"));
+    confirmation = true;
     //DO SOMETHING WHEN RECEIVE A MASTER SYNC REQUEST
   }
 
@@ -152,13 +208,11 @@ void SyncTime(String ReceivedLastSync){
   ReceivedLastSync.remove(0, 1);
   String TurnID = String(ReceivedLastSync[0]);
   currentTurnID = TurnID.toInt();
- 
-  //Set the Sync Time
-  int SyncFreq = 1000;
-  time_t TimeNow = now();
-  int LastSync = TimeNow%SyncFreq;
+
+  ReceivedLastSync.remove(0, 1);
   
-  adjustTime((ReceivedLastSync.toInt()+1)-LastSync); 
+  setTime(ReceivedLastSync.toInt()+2);
   TimeAdjusted = true;
-  debug("Time Sync Success");
+
+  debug("Time Sync Success: TurnID = " + TurnID + " ReceiveID = " + receiveID + " Time= " + String(ReceivedLastSync));
 }

@@ -23,10 +23,9 @@ int Transmit_LastSync() //MAX 50 char length
 {
  
     time_t TimeNow = now();
-    int LastSync = TimeNow;
-    
-    String input = String(LastSync);
-    input = String(id) + String(currentTurnID) + input;
+    int SyncTime = now();
+    String input = (String(id) + String(currentTurnID) + String(SyncTime));
+    Serial.println(input);
     String str;
     int str_len = input.length() + 1;
     char char_array[str_len];
@@ -47,6 +46,8 @@ int Transmit_LastSync() //MAX 50 char length
 
 int Transmit_Hex(String input) //MAX 50 Hex 
 {
+    
+    LastTransmitMsg = input;
     String str;
     int str_len = input.length() + 1;
     char char_array[str_len];
@@ -56,9 +57,6 @@ int Transmit_Hex(String input) //MAX 50 Hex
     char TData[(str_len*2)];
     sprintf(TData, "radio tx %s", char_array);
     loraSerial.println(TData);
-
-    LastTransmitMsg = TData;
-    confirmation = false;
 
     return wait_for_ok_plus_reset();
 }

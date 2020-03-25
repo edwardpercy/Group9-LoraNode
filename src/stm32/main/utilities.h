@@ -8,5 +8,7 @@ void lora_autobaud();
 int wait_for_ok_plus_reset();
 int wait_for_ok();
 
+extern bool confirmation;
+
 
 #endif

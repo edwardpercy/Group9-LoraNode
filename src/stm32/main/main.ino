@@ -19,10 +19,10 @@ HardwareSerial loraSerial(PB7,PB6); // RX, TX
 bool Synced = false;
 bool ms_initiator = true;
 bool show_debug = true;
-bool master_node = false;
+bool master_node = true;
 bool confirmation = true;
 
-int ResendRetries = 5;
+int ResendRetries = 1;
 
 String LastTransmitMsg = "";
 
@@ -108,6 +108,15 @@ void setup() {
     float *data = get_sensordata();
     debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
   }
+
+  //Setup time for master node
+  if(master_node == true){
+    Serial.println("Enter current time");
+    while (Serial.available() == 0);
+    String str = Serial.readStringUntil('\n');
+    setTime(str.toInt());
+    
+  }
   delay(5000);
  
 
@@ -121,45 +130,55 @@ void loop() {
 
     //Check commands from PC gui
     if (gui_receive() == 6) setup();
-    gui_send("NODE", String(master_node)); //Keep-Alive
+    gui_send("NODE", String(Time)); //Keep-Alive GUI
+
+    if (master_node == true) MasterReceiver();
 
     //Startup Sync - Ran on startup to sync time with nearby nodes
-    if (Synced == false && master_node == false) {
-      debug("Startup Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
+    else if (Synced == false && master_node == false) {
+      debug("Startup Sync - ID: " + String(id) + " TIME:" + String(second(now())) + " Init: " + String(ms_initiator));
       StartupSync(); //Ran when NODE is started to sync time with nearby nodes
       confirmation = true;
     }
 
     
     //Listen Period - Listen for incoming messages + Read/Send sensor data when its the nodes turn
-    else if (TimeNow%ListenFreq <= ListenPeriod && master_node == false){ 
+    else if (now()%ListenFreq <= ListenPeriod && master_node == false){ 
       if (confirmation == false && ResendRetries >= 0) {
-        Serial.println("Re-sending unconfirmed messages");
+        Serial.println("Re-sending unconfirmed messages " + String(ResendRetries));
         Transmit_Hex(LastTransmitMsg); //Re-send unconfirmed messages
-   
+        ReceiveLoop();
         ResendRetries -= 1;
       }
       else{
-        ResendRetries = 5;
+        ResendRetries = 1;
         confirmation = true;
         if ((id-currentTurnID)%6==0){ //Read sensors and send data
-          debug("Local Sync - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator));
+          debug("Local Sync - ID: " + String(id) + " TIME:" + String(second(now())) + " Init: " + String(ms_initiator));
     
           //Read and save sensor data to sd-card *TESTING*
           float *data = get_sensordata();
           debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
           logs("DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
-          if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2])) == 0) Serial.println("tx Success");
-          else debug("tx Error");
+          delay(100);
+          if (Transmit_String("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2])) == 0) {
+            Serial.println("tx Success");
+            confirmation = false;
+          }
+          else {
+            debug("tx Error");
+          }
          
+          ReceiveLoop();
+        
         }
         
         else{ //Listen for incoming data
-          debug("Listening - ID: " + String(id) + " TIME:" + String(Time) + " Init: " + String(ms_initiator)); 
+          debug("Listening - ID: " + String(id) + " TIME:" + String(int(now())) + " Init: " + String(ms_initiator) + " TurnID: " + String(currentTurnID)); 
+          ReceiveLoop();
         } 
         
       }
-      ReceiveLoop();
       
     }
 
@@ -170,7 +189,7 @@ void loop() {
       if (currentTurnID > 6) currentTurnID = 0;
       else currentTurnID += 1;
       
-      loraSerial.println(F("sys sleep 9")); //Put LoRa to sleep
+      loraSerial.println(F("sys sleep 8")); //Put LoRa to sleep
       wait_for_ok();
 
       debug("SLEEP");
@@ -210,6 +229,8 @@ void StartupSync() {
   SyncAttempt += 1;
   if (SyncAttempt > SyncRetries) {
     Serial.println(F("Unable to sync")); //Error
+    currentTurnID += 1;
     Synced = true;
+    
   }
 }

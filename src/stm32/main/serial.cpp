@@ -20,12 +20,13 @@ int gui_receive(){ //Receive commands from the PC gui
       if (str == "MSYNC"){ //Initiate Master Sync
         Transmit_Hex("4D53");
         int Timeout = 0;
-        while (Wait_For_Confirm() != 1 && Timeout < 5){
+        while (Wait_For_Confirm() != 1 && Timeout < 10){
           gui_send("SYNC", "Sending, Attempt: " + String(Timeout));
-          Wait_For_Confirm();
+          Transmit_Hex("4D53");
+          
           Timeout += 1;
         }
-        if (Timeout >= 5) gui_send("SYNC", "Timeout Reached");
+        if (Timeout >= 10) gui_send("SYNC", "Timeout Reached");
         else gui_send("SYNC", "Sync Sent");
         
         return 3;     
