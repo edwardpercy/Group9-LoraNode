@@ -15,7 +15,7 @@ int MasterReceiver(){
     {
       str = loraSerial.readStringUntil('\n');
     }
-
+    Serial.println("rx: " + str);
 
     if ( str.indexOf(F("radio_rx")) == 0 )
     {
@@ -25,6 +25,11 @@ int MasterReceiver(){
         Transmit_LastSync(); //Send Sync Data     
         id += 1; 
       }
+
+      if ( str.indexOf(F("442A")) == 0 ){
+        receive_readings(str);
+      }
+      
        
     }
     else{
@@ -217,4 +222,36 @@ void SyncTime(String ReceivedLastSync){
   TimeAdjusted = true;
 
   debug("Time Sync Success: TurnID = " + TurnID + " ReceiveID = " + receiveID + " Time= " + String(ReceivedLastSync));
+}
+
+void receive_readings(String str) {
+  
+  
+  int str_len = str.length() + 1;
+  char char_array[str_len];
+  str.toCharArray(char_array, str_len);
+
+
+  char ReceivedChars[(str_len*2)+10];
+
+
+
+  for (int i = 0; i < str_len; i += 2)  {
+    if (i == 0) {
+      sprintf(ReceivedChars, "%c", (h2c(char_array[i], char_array[i + 1])));
+    }
+    else {
+      sprintf(ReceivedChars + strlen(ReceivedChars), "%c", (h2c(char_array[i], char_array[i + 1])));
+    }
+  }
+
+  Transmit_Hex(F("004000"));
+  confirmation = true;
+  
+  String RChars = String(ReceivedChars);
+  String rid = String(RChars[0]);
+  RChars.remove(0, 1);
+
+  debug("Readings: " + String(RChars) + " @ NODE" + rid);
+
 }

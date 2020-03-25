@@ -21,6 +21,6 @@ int Receive_String(bool Synced);
 String ProcessMessage(bool Synced,String str);
 char h2c(char c1, char c2);
 void SyncTime(String ReceivedLastSync);
-
+void receive_readings(String str);
 
 #endif

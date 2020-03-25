@@ -19,7 +19,7 @@ HardwareSerial loraSerial(PB7,PB6); // RX, TX
 bool Synced = false;
 bool ms_initiator = true;
 bool show_debug = true;
-bool master_node = false;
+bool master_node = true;
 bool confirmation = true;
 bool sync_active = false;
 int ResendRetries = 1;
@@ -86,8 +86,16 @@ void setup() {
   Startup_Check += wait_for_ok();
   loraSerial.println(F("radio set freq 869100000")); //869MHz Frequency
   Startup_Check += wait_for_ok();
-  loraSerial.println(F("radio set wdt 2000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
-  Startup_Check += wait_for_ok();
+  
+  if (master_node == true){
+    loraSerial.println(F("radio set wdt 5000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
+    Startup_Check += wait_for_ok();  
+  }
+  else{
+    loraSerial.println(F("radio set wdt 2000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
+    Startup_Check += wait_for_ok();  
+  }
+  
   loraSerial.println(F("radio set sync 18")); //Sync word used so that other people's LoRa modules don't interfere
   Startup_Check += wait_for_ok();
 
@@ -129,11 +137,15 @@ void loop() {
     int Time = TimeNow;
 
     //Check commands from PC gui
+
+    
+
+    
     if (gui_receive() == 6) setup();
-    gui_send("NODE", String(Time)); //Keep-Alive GUI
+    
 
     if (master_node == true) {
-      if (now()%ListenFreq == 0){
+      if (Time%ListenFreq < 2){
         if (currentTurnID > 6) currentTurnID = 0;
         else currentTurnID += 1;
       }
@@ -204,6 +216,8 @@ void loop() {
     }
     
     else delay(1000);
+
+    gui_send("NODE", (String(Time)+String(currentTurnID))); //Keep-Alive GUI
 
 }
 
