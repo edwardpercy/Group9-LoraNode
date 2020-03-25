@@ -5,12 +5,26 @@ void master_sync(){
 
   while(sync_active == true){
     if (ms_initiator == true){
-      debug("MASTER SYNC: Sending data"); 
-      delay(1000);
+      
+      Serial.println("T READING: " +  LatestReading);
+      LatestReading = "test"; //FIX SENDIGN THIS BIT!!
+      Transmit_String(LatestReading);
+     
+      int Timeout = 0;
+      while (Wait_For_Confirm() != 1 && Timeout < 100){
+        delay(random(0,2000));
+        debug(("MASTER SYNC Sending, Attempt: " + String(Timeout)));
+        Transmit_String(LatestReading);
+        
+        Timeout += 1;
+      }
+      if (Timeout >= 100) debug("MASTER SYNC Timeout Reached");
+      else debug("MASTER SYNC Data Sent");
+      ms_initiator = false;
     }
-    else{
-      slaveReceiver();  
-    }
+    
+    slaveReceiver();  
+    
   }
   
 }

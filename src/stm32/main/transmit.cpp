@@ -3,7 +3,8 @@
 
 int Transmit_String(String input) //MAX 50 char length
 {
-    String str;
+    
+    
     int str_len = input.length() + 1;
     char char_array[str_len];
     input.toCharArray(char_array, str_len);
@@ -15,7 +16,8 @@ int Transmit_String(String input) //MAX 50 char length
     sprintf(RBuffer + strlen(RBuffer), "%02X", char_array[i]);
     }
 
-
+    Serial.println("Tx RBUFFER: " +  String(RBuffer));
+    
     return Transmit_Hex(RBuffer);
 }
 
@@ -57,6 +59,6 @@ int Transmit_Hex(String input) //MAX 50 Hex
     char TData[(str_len*2)];
     sprintf(TData, "radio tx %s", char_array);
     loraSerial.println(TData);
-
+    Serial.println("tx sent: " + String(TData));
     return wait_for_ok_plus_reset();
 }

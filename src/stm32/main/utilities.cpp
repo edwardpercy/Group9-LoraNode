@@ -19,14 +19,15 @@ int wait_for_ok_plus_reset()
 
   String str;
   str = loraSerial.readStringUntil('\n');
+  Serial.println("tx command: " + str);
   if ( str.indexOf(F("ok")) == 0 ) {
-
+    
     str = String("");
     while (str == "")
     {
       str = loraSerial.readStringUntil('\n');
     }
-   
+    Serial.println("tx response: " + str);
     if ( str.indexOf(F("radio_tx_ok")) == 0 ) {
       
       return 0;
@@ -35,12 +36,12 @@ int wait_for_ok_plus_reset()
       return 1;
     }
     else{
-      return 1;
+      return 2;
     }
   }
   
   else{
-    return 1;
+    return 3;
   }
 }
 

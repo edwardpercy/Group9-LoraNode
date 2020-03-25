@@ -9,6 +9,7 @@
 #include "receive.h"
 #include "transmit.h"
 
+extern String LatestReading;
 extern bool ms_initiator;
 extern bool sync_active;
 void relay_master_signal();
