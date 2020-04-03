@@ -1,6 +1,6 @@
 #include "serial.h"
 
-void(* resetFunc) (void) = 0;
+
 
 void debug(String message){
   if (show_debug == true) Serial.println("DEBUG - " + message);

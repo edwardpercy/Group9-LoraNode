@@ -1,26 +1,42 @@
 #include "sync.h"
 
+std::queue<String> RelayReadings;
+
 void master_sync(){
+  
   if (ms_initiator != true) relay_master_signal();
 
   while(sync_active == true){
     if (ms_initiator == true){
       
-      Serial.println("T READING: " +  LatestReading);
-      LatestReading = "test"; //FIX SENDIGN THIS BIT!!
-      Transmit_String(LatestReading);
-     
-      int Timeout = 0;
-      while (Wait_For_Confirm() != 1 && Timeout < 100){
-        delay(random(0,2000));
-        debug(("MASTER SYNC Sending, Attempt: " + String(Timeout)));
-        Transmit_String(LatestReading);
+      RelayReadings.push(LatestReading);
+      
+      loraSerial.println(F("radio set wdt 5000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
+      wait_for_ok(); 
+      
+      while(!RelayReadings.empty()) {
+        Serial.println("Popping " + RelayReadings.front());
+      
+        Transmit_String(RelayReadings.front());
         
-        Timeout += 1;
+        
+        
+        int Timeout = 0;
+        while (Wait_For_Confirm() != 1 && Timeout < 100){
+          delay(random(0,2000));
+          debug(("MASTER SYNC Sending, Attempt: " + String(Timeout)));
+          Transmit_String(RelayReadings.front());
+          
+          Timeout += 1;
+        }
+        if (Timeout >= 100) debug("MASTER SYNC Timeout Reached");
+        else debug("MASTER SYNC Data Sent");
+        RelayReadings.pop();
+        ms_initiator = false;
       }
-      if (Timeout >= 100) debug("MASTER SYNC Timeout Reached");
-      else debug("MASTER SYNC Data Sent");
-      ms_initiator = false;
+      loraSerial.println(F("radio set wdt 2000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
+      wait_for_ok(); 
+      
     }
     
     slaveReceiver();  
@@ -67,6 +83,11 @@ int slaveReceiver(){
     {
       
       str.remove(0, 10);
+
+      //IF READINGS + ID >= current then:
+      //RelayReadings.push(LatestReading);
+      //ms_initiator = true
+      //Send ID specific confirmation
       
 //      if ( str.indexOf(F("3C3C")) == 0) {
 //        Transmit_LastSync(); //Send Sync Data        

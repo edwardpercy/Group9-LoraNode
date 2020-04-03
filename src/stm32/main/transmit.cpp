@@ -1,24 +1,24 @@
 #include "transmit.h"
 #include "utilities.h"
 
-int Transmit_String(String input) //MAX 50 char length
+int Transmit_String(String input_c)
 {
-    
-    
-    int str_len = input.length() + 1;
-    char char_array[str_len];
-    input.toCharArray(char_array, str_len);
+  String input(input_c); // Make a deep copy to be able to do trim()
+  input.trim();
+  const size_t inputLength = input.length();
+  String output;
+  output.reserve(inputLength * 2);
+  
+  for(size_t i = 0; i < inputLength; ++i)
+  {
+    if(input[i] == '\0') break;
 
-
-    char RBuffer[(str_len*2)+5];
-
-    for (int i = 0; i < str_len; ++i) {
-    sprintf(RBuffer + strlen(RBuffer), "%02X", char_array[i]);
-    }
-
-    Serial.println("Tx RBUFFER: " +  String(RBuffer));
-    
-    return Transmit_Hex(RBuffer);
+    char buffer[3];
+    sprintf(buffer, "%02x", static_cast<int>(input[i]));
+    output += buffer[0];
+    output += buffer[1];
+  }
+  return Transmit_Hex(output);
 }
 
 int Transmit_LastSync() //MAX 50 char length

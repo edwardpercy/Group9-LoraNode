@@ -8,6 +8,9 @@
 #include "sdcard.h"
 #include "receive.h"
 #include "transmit.h"
+#include "sensors.h"
+#include "utilities.h"
+#include <queue>
 
 extern String LatestReading;
 extern bool ms_initiator;

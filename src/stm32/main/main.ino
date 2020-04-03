@@ -19,7 +19,7 @@ HardwareSerial loraSerial(PB7,PB6); // RX, TX
 bool Synced = false;
 bool ms_initiator = true;
 bool show_debug = true;
-bool master_node = true;
+bool master_node = false;
 bool confirmation = true;
 bool sync_active = false;
 int ResendRetries = 1;
@@ -116,6 +116,7 @@ void setup() {
     logs("Startup Success");
     float *data = get_sensordata();
     LatestReading = ("D*" + String(id) + String(data[0]) + " " + String(data[1]) + " " + String(data[2]));
+    Serial.println("testReading :" + LatestReading);
     debug("DEBUG - DATA P(" + String(data[0]) + ") T(" + String(data[1]) + ") H(" + String(data[2])+ ")");
   }
 
@@ -128,6 +129,7 @@ void setup() {
     
   }
   delay(5000);
+
  
 
 }
