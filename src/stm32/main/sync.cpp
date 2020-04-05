@@ -7,7 +7,7 @@ void master_sync(){
   if (ms_initiator != true) relay_master_signal();
 
   while(sync_active == true){
-    if (ms_initiator == true){
+    if (ms_initiator == true || !RelayReadings.empty()){
       
       RelayReadings.push(LatestReading);
       
@@ -85,13 +85,17 @@ int slaveReceiver(){
       str.remove(0, 10);
       
       if ( str.indexOf(F("442A")) == 0 ){
-        RelayReadings.push(receive_readings(str));
+        std::vector<String> Readings;
+        Readings = receive_readings(str);
+        if (Readings[0].toInt() >= id){
+          RelayReadings.push(Readings[1]);
+        }
+      }
+
+      if ( str.indexOf(F("4553")) == 0 ){
+        sync_active = false;
       }
       
-      //IF READINGS + ID >= current then:
-      //RelayReadings.push(LatestReading);
-      //ms_initiator = true
-      //Send ID specific confirmation
       
 //      if ( str.indexOf(F("3C3C")) == 0) {
 //        Transmit_LastSync(); //Send Sync Data        
