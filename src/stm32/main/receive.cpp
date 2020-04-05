@@ -182,8 +182,8 @@ String ProcessMessage(bool Synced,String str) {
     confirmation = true;
     
     String RChars = String(ReceivedChars);
-    String rid = String(RChars[0]);
-    RChars.remove(0, 1);
+    String rid = String(RChars[1]);
+    RChars.remove(0, 2);
 
     debug("Readings: " + String(RChars) + " @ NODE" + rid);
   }
@@ -224,7 +224,7 @@ void SyncTime(String ReceivedLastSync){
   debug("Time Sync Success: TurnID = " + TurnID + " ReceiveID = " + receiveID + " Time= " + String(ReceivedLastSync));
 }
 
-void receive_readings(String str) {
+String receive_readings(String str) {
   
   
   int str_len = str.length() + 1;
@@ -249,9 +249,11 @@ void receive_readings(String str) {
   confirmation = true;
   
   String RChars = String(ReceivedChars);
-  String rid = String(RChars[0]);
-  RChars.remove(0, 1);
+  String rid = String(RChars[1]);
+  RChars.remove(0, 2);
 
   debug("Readings: " + String(RChars) + " @ NODE" + rid);
+  
+  return String(ReceivedChars);
 
 }

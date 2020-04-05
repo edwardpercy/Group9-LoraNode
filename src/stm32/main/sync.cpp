@@ -83,7 +83,11 @@ int slaveReceiver(){
     {
       
       str.remove(0, 10);
-
+      
+      if ( str.indexOf(F("442A")) == 0 ){
+        RelayReadings.push(receive_readings(str));
+      }
+      
       //IF READINGS + ID >= current then:
       //RelayReadings.push(LatestReading);
       //ms_initiator = true
