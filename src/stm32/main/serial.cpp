@@ -32,6 +32,23 @@ int gui_receive(){ //Receive commands from the PC gui
         return 3;     
       }
 
+      if (str == "ESYNC"){ //End Master Sync
+        Transmit_Hex("4553");
+        int Timeout = 0;
+        while (Wait_For_Confirm() != 1 && Timeout < 10){
+          gui_send("SYNC", "Sending, Attempt: " + String(Timeout));
+          Transmit_Hex("4553");
+          
+          Timeout += 1;
+        }
+        if (Timeout >= 10) gui_send("SYNC", "Timeout Reached");
+        else gui_send("SYNC", "End Sync Sent");
+        
+        return 3;     
+      }
+
+      
+
       if (str.indexOf("STIME") == 0){ //Set time -> Master Node
         str.remove(0, 5);
         setTime(str.toInt());

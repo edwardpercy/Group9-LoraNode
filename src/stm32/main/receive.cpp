@@ -182,8 +182,8 @@ String ProcessMessage(bool Synced,String str) {
     confirmation = true;
     
     String RChars = String(ReceivedChars);
-    String rid = String(RChars[1]);
-    RChars.remove(0, 2);
+    String rid = String(RChars[2]);
+    RChars.remove(0, 3);
 
     debug("Readings: " + String(RChars) + " @ NODE" + rid);
   }
@@ -192,7 +192,10 @@ String ProcessMessage(bool Synced,String str) {
     Transmit_Hex(F("004000"));
     confirmation = true;
     sync_active = true;
+
+    bool ms_initiator_copy = ms_initiator;
     master_sync();
+    if (ms_initiator_copy == true) ms_initiator = true; //Reset the master_sync intiator flag for next master sync
   }
 
 
@@ -224,7 +227,7 @@ void SyncTime(String ReceivedLastSync){
   debug("Time Sync Success: TurnID = " + TurnID + " ReceiveID = " + receiveID + " Time= " + String(ReceivedLastSync));
 }
 
-String receive_readings(String str) {
+std::vector<String> receive_readings(String str) {
   
   
   int str_len = str.length() + 1;
@@ -249,11 +252,14 @@ String receive_readings(String str) {
   confirmation = true;
   
   String RChars = String(ReceivedChars);
-  String rid = String(RChars[1]);
-  RChars.remove(0, 2);
+  String rid = String(RChars[2]);
+  RChars.remove(0, 3);
 
   debug("Readings: " + String(RChars) + " @ NODE" + rid);
-  
-  return String(ReceivedChars);
+
+  std::vector<String> Readings;
+  Readings.push_back(rid);
+  Readings.push_back(ReceivedChars);
+  return Readings;
 
 }
