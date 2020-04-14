@@ -206,11 +206,11 @@ String ProcessMessage(bool Synced,String str) {
   }
 
   
-  if ( str.indexOf(F("3C3C")) == 0 && Synced == true) {
+  if ( str.indexOf(F("3C3C")) == 0) {
     Transmit_LastSync(); //Send Sync Data
     confirmation = true;
   }
-  if ( str.indexOf(F("3E3E")) == 0 ) {
+  if ( str.indexOf(F("3E3E")) == 0 && Synced == false) {
     Transmit_Hex(F("004000"));
     confirmation = true;
     SyncTime(ReceivedChars); //Sync with received sync data

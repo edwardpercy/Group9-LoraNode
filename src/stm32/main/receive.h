@@ -16,6 +16,7 @@ extern bool master_node;
 extern bool sync_active;
 extern int id;
 extern bool ms_initiator;
+extern bool Synced;
 
 int MasterReceiver();
 int Wait_For_Confirm();
