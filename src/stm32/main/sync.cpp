@@ -86,7 +86,10 @@ int slaveReceiver(){
         std::vector<String> Readings;
         Readings = receive_readings(str);
         if (Readings[0].toInt() >= id){
-          RelayReadings.push(Readings[1]);
+          String relayR = Readings[1];
+          relayR = relayR + " " + Readings[0]; //Append the received slaves ID to the end of the sender readings 
+          relayR[2] = (char)id; //Replace the relayed sender id with the new slave (current node). 
+          RelayReadings.push(relayR);
         }
       }
 
