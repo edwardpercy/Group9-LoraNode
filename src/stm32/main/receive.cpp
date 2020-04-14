@@ -72,6 +72,7 @@ int Receive_String(bool Synced){
         confirmation = true;
         return 3;
       }
+      
       else{
      
         ProcessMessage(Synced,str);
@@ -116,6 +117,43 @@ int Wait_For_Confirm(){
       str.remove(0, 10);
       
       if (str.indexOf(F("004000")) == 0) {
+        
+        return 1;
+      }  
+    }
+    else{
+      return 0;
+      }
+  }
+  else
+  {
+    debug("radio not going into receive mode");
+    delay(4000);
+    return 2;
+  }
+}
+
+int Wait_For_Confirm_id(){
+  String str;
+  loraSerial.println("radio rx 0"); //wait for 60 seconds to receive
+  str = loraSerial.readStringUntil('\n');
+  if ( str.indexOf(F("ok")) == 0 )
+  {
+   
+    str = String("");
+    while (str == "")
+    {
+      str = loraSerial.readStringUntil('\n');
+    }
+
+
+    if ( str.indexOf(F("radio_rx")) == 0 )
+    {
+
+      str.remove(0, 10);
+      String IDConfirm = ("004000"+String(id));
+      Serial.println("ID CONFIRM: " + IDConfirm + "  Received: " + str);
+      if (str.indexOf(("0004000"+String(id))) == 0) {
         
         return 1;
       }  
@@ -194,8 +232,12 @@ String ProcessMessage(bool Synced,String str) {
     sync_active = true;
 
     bool ms_initiator_copy = ms_initiator;
+    loraSerial.println(F("radio set wdt 8000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
+    wait_for_ok(); 
     master_sync();
     if (ms_initiator_copy == true) ms_initiator = true; //Reset the master_sync intiator flag for next master sync
+    loraSerial.println(F("radio set wdt 2000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
+    wait_for_ok(); 
   }
 
 
@@ -248,12 +290,13 @@ std::vector<String> receive_readings(String str) {
     }
   }
 
-  Transmit_Hex(F("004000"));
-  confirmation = true;
   
   String RChars = String(ReceivedChars);
   String rid = String(RChars[2]);
   RChars.remove(0, 3);
+
+  Transmit_Hex(("004000"+String(rid)));
+  confirmation = true;
 
   debug("Readings: " + String(RChars) + " @ NODE" + rid);
 

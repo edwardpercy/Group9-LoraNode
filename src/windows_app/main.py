@@ -5,25 +5,6 @@ import time
 import tkinter as tk
 import threading
 
-class App(threading.Thread):
-
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.start()
-
-    def callback(self):
-        self.root.quit()
-
-    def run(self):
-
-        self.root = tk.Tk()
-        self.root.protocol("WM_DELETE_WINDOW", self.callback)
-
-        label = tk.Label(self.root, text="Start Serial")
-        label.pack()
-
-
-        self.root.mainloop()
 
 
 
@@ -59,10 +40,10 @@ def serial_ports():
     
 
 
-#app = App()
-
 
 selected_port = ''
+for x in serial_ports():
+    print(x)
 for x in serial_ports():
     print(x)
     select = input("Use port? (Y/N)")
@@ -78,8 +59,11 @@ else:
 
 ser = serial.Serial(
 port=selected_port,\
-baudrate=9600,\
+baudrate=57600,\
 parity=serial.PARITY_NONE,\
+xonxoff= True,\
+rtscts = True,\
+dsrdtr = True,\
 stopbits=serial.STOPBITS_ONE,\
 bytesize=serial.EIGHTBITS,\
     timeout=1000)
@@ -97,7 +81,7 @@ while True:
         line = ser.readline()
  
     line = line[:-2].decode()
-
+    
     if "node" in line:
         line = line[4:]
         print("Node: ",' ' * 10,line)

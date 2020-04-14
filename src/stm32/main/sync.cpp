@@ -4,15 +4,14 @@ std::queue<String> RelayReadings;
 
 void master_sync(){
   
-  if (ms_initiator != true) relay_master_signal();
-
+  if (ms_initiator != true) relay_master_signal(30);
+  else relay_master_signal(3);
   while(sync_active == true){
     if (ms_initiator == true || !RelayReadings.empty()){
       
       RelayReadings.push(LatestReading);
       
-      loraSerial.println(F("radio set wdt 5000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
-      wait_for_ok(); 
+      
       
       while(!RelayReadings.empty()) {
         Serial.println("Popping " + RelayReadings.front());
@@ -22,7 +21,7 @@ void master_sync(){
         
         
         int Timeout = 0;
-        while (Wait_For_Confirm() != 1 && Timeout < 100){
+        while (Wait_For_Confirm_id() != 1 && Timeout < 100){
           delay(random(0,2000));
           debug(("MASTER SYNC Sending, Attempt: " + String(Timeout)));
           Transmit_String(RelayReadings.front());
@@ -34,8 +33,7 @@ void master_sync(){
         RelayReadings.pop();
         ms_initiator = false;
       }
-      loraSerial.println(F("radio set wdt 2000")); //Watchdog Timer set to 2s to allow the RN2483 to listen for 2s 
-      wait_for_ok(); 
+   
       
     }
     
@@ -45,16 +43,16 @@ void master_sync(){
   
 }
 
-void relay_master_signal(){
+void relay_master_signal(int timeout_val){
   Transmit_Hex("4D53");
   int Timeout = 0;
-  while (Wait_For_Confirm() != 1 && Timeout < 30){
+  while (Wait_For_Confirm() != 1 && Timeout < timeout_val){
     debug(("RELAY Sending, Attempt: " + String(Timeout)));
     Transmit_Hex("4D53");
     
     Timeout += 1;
   }
-  if (Timeout >= 30) {
+  if (Timeout >= timeout_val) {
     debug("RELAY Timeout Reached");
     ms_initiator = true;
   }
@@ -94,6 +92,8 @@ int slaveReceiver(){
 
       if ( str.indexOf(F("4553")) == 0 ){
         sync_active = false;
+        Transmit_Hex(F("004000"));
+        
       }
       
       

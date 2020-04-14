@@ -19,6 +19,7 @@ extern bool ms_initiator;
 
 int MasterReceiver();
 int Wait_For_Confirm();
+int Wait_For_Confirm_id();
 int Receive_String(bool Synced);
 String ProcessMessage(bool Synced,String str);
 char h2c(char c1, char c2);

@@ -16,7 +16,7 @@ extern String LatestReading;
 extern bool ms_initiator;
 extern bool sync_active;
 extern int id;
-void relay_master_signal();
+void relay_master_signal(int timeout_val);
 void master_sync();
 int slaveReceiver();
 

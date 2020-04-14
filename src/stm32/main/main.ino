@@ -19,7 +19,7 @@ HardwareSerial loraSerial(PB7,PB6); // RX, TX
 bool Synced = false;
 bool ms_initiator = true;
 bool show_debug = true;
-bool master_node = true;
+bool master_node = false;
 bool confirmation = true;
 bool sync_active = false;
 int ResendRetries = 1;
